@@ -1,0 +1,76 @@
+generated: '2026-09-19'
+method: derived
+format: fastapi-detail
+source: openapi/macaroonnetwork-com-openapi.json
+docs:
+- https://macaroonnetwork.com/auth.md
+- https://macaroonnetwork.com/terms
+summary: >-
+  Derived from the 4xx responses declared in the OpenAPI (402 on 71 execute operations, 422 on 98 operations)
+  and enriched with error bodies observed live on 2026-09-19. Macaroon Network does not use RFC 9457
+  application/problem+json: REST errors are the FastAPI envelope {"detail": <string | ValidationError[]>},
+  the payment challenge is the x402 v2 JSON body plus the PAYMENT-REQUIRED header, and the MCP / A2A endpoints
+  return JSON-RPC 2.0 error objects. The most important non-error outcome for an agent is also recorded: a
+  failed acceptance predicate is a 200 with predicate_passed false, and per the terms the held payment is
+  refunded through the same rail rather than settled.
+envelope:
+  rest:
+    media_type: application/json
+    shape: '{ "detail": string }  |  { "detail": [ { "loc": [...], "msg": string, "type": string, "input": any, "ctx": object } ] }'
+    schemas: [HTTPValidationError, ValidationError]
+  payment_challenge:
+    media_type: application/json
+    header: 'PAYMENT-REQUIRED: <base64 JSON x402 v2 payment requirements>'
+    shape: '{ "x402Version": 2, "error": string, "resource": { url, description, mimeType, serviceName, tags }, "accepts": [ { scheme, network, amount, asset, payTo, maxTimeoutSeconds, extra } ], "extensions": { "bazaar": {...} } }'
+  jsonrpc:
+    media_type: application/json
+    shape: '{ "jsonrpc": "2.0", "id": ..., "error": { "code": int, "message": string, "data": object } }'
+problems:
+- status: 402
+  title: Payment Required (x402 v2)
+  operations: 71 per-capability POST /execute/<capability-id> operations (execute_tx_new_business_change_feed_v1 ... execute_polymathica_transaction_intelligence_v1) and, by construction, execute_capability_execute__capability_id__post
+  spec_description: 'x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.'
+  observed: 'POST /execute/vat-validate-v1 with {} -> 402; PAYMENT-REQUIRED header present; body x402Version 2, error "PAYMENT-SIGNATURE header is required", accepts[0].network eip155:8453, amount 3000 (0.003 USDC), maxTimeoutSeconds 60.'
+  remediation: >-
+    Decode PAYMENT-REQUIRED, sign the exact requirement with an x402 v2 wallet on Base, retry the identical JSON
+    request with PAYMENT-SIGNATURE (the listing pages also show X-Macaroon-Payment-Rail: x402 and
+    X-Macaroon-X402-Network: base). A GET on the same path returns the price without executing.
+  source_operation: openapi/macaroonnetwork-com-openapi.json#execute_vat_validate_v1
+- status: 422
+  title: Validation Error
+  operations: 98 operations declaring HTTPValidationError, including every execute_* operation, the public catalogue and GPT faith endpoints, listings CRUD and provider candidates
+  schema: HTTPValidationError -> detail[] of ValidationError {loc, msg, type, input, ctx}
+  remediation: >-
+    Fix the field named in detail[].loc; for execute operations the request body must be
+    {"input": <listing input_schema>, "predicate": <predicate>} with additionalProperties false on the input.
+  source_operation: openapi/macaroonnetwork-com-openapi.json#execute_capability_execute__capability_id__post
+- status: 404
+  title: Not Found
+  declared_in_spec: false
+  observed: 'GET https://api.macaroonnetwork.com/graphql and every unknown path -> 404 application/json {"detail":"Not Found"} (22 bytes); GET /api/provider/whoami -> 404 anonymously.'
+  remediation: Capability ids are exact strings from /listings or /.well-known/agent-capabilities; do not send the literal {capability_id} template (the spec's own parameter description).
+- status: 400
+  title: Bad Request (MCP, no session)
+  surface: MCP https://api.macaroonnetwork.com/mcp
+  observed: 'POST tools/list without a session -> HTTP 400, JSON-RPC error -32600 "Bad Request: Missing session ID".'
+  remediation: Call initialize first, read the mcp-session-id response header, send notifications/initialized, then tools/list with Mcp-Session-Id.
+- status: 200
+  title: Unsupported A2A operation
+  surface: A2A https://api.macaroonnetwork.com/a2a
+  observed: 'agent/getAuthenticatedExtendedCard -> JSON-RPC error -32004 "This operation is not supported by this agent", data.implemented [message/send, tasks/get, tasks/cancel].'
+  remediation: Use message/send, tasks/get or tasks/cancel only; there is no authenticated extended card.
+domain_outcomes:
+- name: Predicate failed
+  http_status: 200
+  shape: '{ "payload": {...}, "predicate_passed": false, "receipt": {...} }'
+  meaning: The backend answered but the caller's acceptance predicate did not pass against the payload.
+  money: 'Terms: "Funds are held, not settled, until the response is checked against the predicate ... A failed predicate refunds automatically through that same rail." The MCP tools say the same: "bridge errors and predicate failures refund."'
+  note: A listing page notes a genuinely invalid VAT number returns valid false "as a real, useful (unpaid-predicate) result, not an error".
+- name: Upstream source outage
+  meaning: 'Listing pages state a member-state / upstream outage "surfaces as a real upstream error, not a fabricated result"; no status code is documented for it.'
+- name: Free-tier call consumed
+  meaning: On listings with free_tier.enabled, a call is consumed only on predicate_pass (free_tier.consumes_on); quota is scoped per agent per capability via the self-declared X-Macaroon-Agent-Id header.
+not_declared:
+- No 401/403 anywhere — the API has no authentication to fail.
+- No 429 declared or documented; no Retry-After.
+- No 5xx declared in the contract.

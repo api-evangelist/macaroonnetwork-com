@@ -1,0 +1,37 @@
+# Moirai Labs
+
+> Moirai Labs is a smart-contract analytics platform for Web3 projects with a first-class AI agent (Moirai Labs AI) exposing on-chain analytics over the A2A (Agent-to-Agent) protocol, MCP, and a public OpenAPI surface.
+
+Moirai Labs turns raw blockchain data into product-grade analytics: contract metrics, method-level breakdowns, cohort analysis, and cross-chain views. The same data is available to humans (web dashboard) and to autonomous agents (A2A / MCP).
+
+## Pages
+
+- [Landing](/): Smart-contract analytics for Web3 teams.
+- [A2A Protocol](/a2a): Agent-to-Agent integration docs and live agent card.
+- [Blog](/blog): Guides and articles on smart-contract analytics.
+- [Pricing](/pricing): Plans and credit-based usage details.
+- [About](/about): What Moirai Labs does and the team.
+
+## Key URLs
+
+- [Landing](/): https://moirailabs.com/
+- [A2A Protocol](/a2a): https://moirailabs.com/a2a
+- [Blog](/blog): https://moirailabs.com/blog
+- [Blog article](/blog/getting-started-with-smart-contract-analytics): https://moirailabs.com/blog/getting-started-with-smart-contract-analytics
+- [Pricing](/pricing): https://moirailabs.com/pricing
+- [About](/about): https://moirailabs.com/about
+- [Live A2A agent card](https://agent.moirailabs.com/.well-known/agent-card.json): https://agent.moirailabs.com/.well-known/agent-card.json
+- [A2A agent card mirror](/.well-known/agent-card.json): https://moirailabs.com/.well-known/agent-card.json
+- [AI plugin manifest](/.well-known/ai-plugin.json): https://moirailabs.com/.well-known/ai-plugin.json
+- [OpenAPI spec](/openapi.json): https://moirailabs.com/openapi.json
+
+## Capabilities
+
+- Smart contract analytics across Ethereum, Polygon, Arbitrum, Optimism, Base
+- Cohort and method-call analysis
+- Credit-based usage shared across UI, A2A, MCP, and A2P pipelines
+- Bearer-token authenticated API for agent integrations
+
+## Keywords
+
+Moirai Labs, Moirai Labs AI, Moirai Labs AI-agent, A2A protocol, agent-to-agent, MCP, on-chain analytics AI, blockchain AI agent, smart contract analytics, Web3 analytics

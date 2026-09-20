@@ -1,0 +1,123 @@
+generated: '2026-09-19'
+method: probed
+status: published
+source: https://api.macaroonnetwork.com/mcp
+docs: https://github.com/kevmoz/macaroonnetwork-mcp
+registry: https://registry.modelcontextprotocol.io/v0/servers?search=com.macaroonnetwork
+summary: >-
+  Macaroon Network ships its router MCP server two ways: a hosted Streamable HTTP endpoint at
+  https://api.macaroonnetwork.com/mcp (POST; a bare POST tools/list without a session returns 400 JSON-RPC
+  -32600 "Bad Request: Missing session ID", initialize returns 200 with an mcp-session-id header, and
+  tools/list on that session returns four tools with real inputSchemas — no credential involved), and a stdio
+  package on PyPI (macaroonnetwork-mcp 0.4.0, released 2026-09-14, console script `macaroonnetwork-mcp`),
+  listed in the official MCP registry as com.macaroonnetwork/mcp-server. The live remote identifies as
+  serverInfo {name: macaroon-network, version: 0.3.0} on protocol 2025-06-18. The provider also publishes a
+  machine-readable MCP registry of its own at GET /api/public/mcp-servers (schema macaroon.mcp-registry.v1)
+  naming this server (role network_router, transports stdio package macaroonnetwork-mcp 0.4.0 and
+  streamable-http https://api.macaroonnetwork.com/mcp/) and a second, vertical server — Macaroon Bible
+  Evidence MCP — profiled in mcp/macaroonnetwork-com-bible-evidence-mcp.yml. Tool names and descriptions are
+  Macaroon-specific (macaroons_*, predicate, x402/L402 rails) and match no shared platform fingerprint: this
+  is a provider-built server.
+deployment:
+  mode: both
+  endpoint: https://api.macaroonnetwork.com/mcp
+  install: pip install macaroonnetwork-mcp
+  command: macaroonnetwork-mcp
+  package: https://pypi.org/project/macaroonnetwork-mcp/
+  auth: none
+  verified: probed
+  note: >-
+    Remote: an https URL an MCP client POSTs to, verified live 2026-09-19 (initialize 200, notifications/initialized
+    202, tools/list 200). Stdio: `pip install macaroonnetwork-mcp` then run `macaroonnetwork-mcp`, verbatim from
+    the package README, which configures it as {"mcpServers":{"macaroonnetwork":{"command":"macaroonnetwork-mcp"}}}
+    and defaults MACAROONS_REGISTRY_URL to https://api.macaroonnetwork.com. auth is none in the connection sense:
+    no credential is needed to initialize or list tools, no authorization server is advertised (the RFC 9728
+    document on this host intentionally carries no authorization_servers and bearer_methods_supported is empty),
+    and paid tool calls are gated economically by x402 (the tool returns the real challenge; the caller signs it
+    with its own wallet and retries with payment_signature).
+servers:
+- id: macaroon-network
+  name: Macaroon Network MCP (network router)
+  official_registry_name: com.macaroonnetwork/mcp-server
+  endpoint: https://api.macaroonnetwork.com/mcp
+  endpoint_trailing_slash_also_answers: https://api.macaroonnetwork.com/mcp/
+  transport: streamable-http
+  http_methods: [POST]
+  auth: none
+  payment: x402 v2 (USDC on Base, eip155:8453) per paid execution; Lightning L402 hold invoices for feed purchases (macaroons_purchase)
+  status: live
+  probe:
+    fetched: '2026-09-19'
+    unauthenticated_tools_list_without_session: {http_status: 400, body: '{"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"Bad Request: Missing session ID"}}'}
+    initialize:
+      http_status: 200
+      protocol_version: '2025-06-18'
+      server_info: {name: macaroon-network, version: 0.3.0}
+      capabilities: {experimental: {}, tools: {listChanged: false}}
+      session_header: mcp-session-id
+    notifications_initialized: {http_status: 202}
+    tools_list:
+      http_status: 200
+      content_type: application/json
+      tool_count: 4
+      file: mcp/macaroonnetwork-com-mcp-tools.json
+    edge: 'cloudflare (server: cloudflare, cf-cache-status DYNAMIC)'
+  tools:
+  - name: macaroons_search
+    category: discovery
+    cost: free
+    required: [intent]
+    inputs: [intent, limit]
+    description: Search Macaroon Network for capabilities matching an intent. Returns ranked listings with price, predicate hash, and freshness.
+  - name: macaroons_metadata
+    category: discovery
+    cost: free
+    required: [target_id]
+    inputs: [target_id]
+    description: Get free metadata (freshness, content_hash) for a feed target before purchasing.
+  - name: macaroons_purchase
+    category: commerce
+    cost: paid (Lightning L402 hold invoice, capped by max_spend_sats)
+    required: [target_id, predicate]
+    inputs: [target_id, predicate, max_spend_sats, since, limit, resume_macaroon]
+    description: Purchase change-events for a feed target; payment settles only if the acceptance predicate passes, otherwise fully refunded. With no wallet configured (the default) it returns payment_required with a real invoice.
+  - name: macaroons_execute
+    category: commerce
+    cost: paid (x402 USDC on Base, the live primary rail; or L402 where a listing uses it)
+    required: [capability_id, input]
+    inputs: [capability_id, input, predicate, max_spend_sats, resume_macaroon, payment_signature]
+    description: Execute a paid marketplace capability by capability_id; returns x402_payment_required / payment_required with the real terms when unpaid, and the predicate-verified result and receipt when paid.
+  package_only_tools:
+    note: >-
+      The PyPI package README (0.4.0) and the API-host llms.txt list six tools — macaroons_search,
+      macaroons_metadata, macaroons_categories, macaroons_discover_mcp, macaroons_sources, macaroons_execute.
+      The live remote returned four (adding macaroons_purchase, omitting the three below). Recorded as a
+      version difference between the hosted 0.3.0 and the packaged 0.4.0 router; the three are not asserted
+      as remote tools.
+    tools:
+    - {name: macaroons_categories, description: Retrieve the canonical category registry and exact mapped-product counts. Free., rest: public_catalog_taxonomy_api_public_taxonomy_get}
+    - {name: macaroons_discover_mcp, description: Retrieve evidenced live Macaroon MCP servers and their transports. Free., rest: public_mcp_servers_api_public_mcp_servers_get}
+    - {name: macaroons_sources, description: Retrieve reviewed source and rights records with explicit partial-coverage reporting. Free., rest: public_sources_api_public_sources_get}
+- id: bible-evidence
+  name: Macaroon Bible Evidence MCP
+  official_registry_name: com.macaroonnetwork/bible-evidence
+  endpoint: https://api.macaroonnetwork.com/mcp-faith-evidence-v1/mcp/
+  transport: streamable-http
+  auth: none
+  payment: none (free, read-only; no wallet, purchase or execution tool exposed)
+  status: live
+  detail: mcp/macaroonnetwork-com-bible-evidence-mcp.yml
+focused_stdio_servers:
+  note: >-
+    Three single-capability stdio servers are also published to PyPI and the official MCP registry
+    (runtimeHint uvx), each wrapping one paid capability. Recorded from the registry and PyPI; not executed.
+  servers:
+  - {registry_name: com.macaroonnetwork/companies-house-live-search-v1, package: macaroonnetwork-mcp-companies-house-live-search-v1, version: 1.1.0, published: '2026-09-11', transport: stdio}
+  - {registry_name: com.macaroonnetwork/sanctions-pep-screening-v1, package: macaroonnetwork-mcp-sanctions-pep-screening-v1, version: 1.1.0, published: '2026-09-11', transport: stdio}
+  - {registry_name: com.macaroonnetwork/uk-logistics-operator-risk-check-v1, package: macaroonnetwork-mcp-uk-logistics-operator-risk-check-v1, version: 1.1.0, published: '2026-09-11', transport: stdio}
+listings:
+- Official MCP Registry (registry.modelcontextprotocol.io) — com.macaroonnetwork/mcp-server 0.4.0, published 2026-09-14
+- Provider registry GET https://api.macaroonnetwork.com/api/public/mcp-servers (schema macaroon.mcp-registry.v1)
+known_defects:
+- The provider's own MCP registry gives website_url https://macaroonnetwork.com/mcp, which returns the site's HTML 404.
+- The Cloudflare edge does not serve an RFC 9728 path-scoped document for the MCP resource (/.well-known/oauth-protected-resource/mcp 404); only the host-level document exists and it advertises no authorization server, which auth.md says is intentional.

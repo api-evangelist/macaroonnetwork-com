@@ -1,0 +1,49 @@
+generated: '2026-09-19'
+method: probed
+status: published
+source: https://api.macaroonnetwork.com/mcp-faith-evidence-v1/mcp/
+docs: https://macaroonnetwork.com/bible-api
+registry: https://registry.modelcontextprotocol.io/v0/servers?search=com.macaroonnetwork
+summary: >-
+  A second, vertical MCP server: free, read-only Bible evidence over pinned Berean Standard Bible (BSB) and
+  World English Bible (WEB) corpora with OpenBible.info cross-references. Verified live 2026-09-19 —
+  initialize 200 (serverInfo macaroon-bible-evidence 0.3.0, protocol 2025-06-18, mcp-session-id issued),
+  notifications/initialized 202, tools/list 200 with eleven tools carrying real inputSchemas. The bible-api
+  page states the eleven bounded tools need no API key and that no wallet, purchase or execution tool is
+  exposed; the paid christian-* capabilities remain on the REST execute path. Listed in the official MCP
+  registry as com.macaroonnetwork/bible-evidence (latest 0.3.1, published 2026-09-14; live server reports
+  0.3.0).
+deployment:
+  mode: remote
+  endpoint: https://api.macaroonnetwork.com/mcp-faith-evidence-v1/mcp/
+  auth: none
+  verified: probed
+  note: Remote only — the registry entry carries remotes[] and no packages[]; no stdio install is published for this server.
+servers:
+- id: bible-evidence
+  name: Macaroon Bible Evidence MCP
+  official_registry_name: com.macaroonnetwork/bible-evidence
+  endpoint: https://api.macaroonnetwork.com/mcp-faith-evidence-v1/mcp/
+  transport: streamable-http
+  http_methods: [POST]
+  auth: none
+  payment: none
+  status: live
+  probe:
+    fetched: '2026-09-19'
+    initialize: {http_status: 200, protocol_version: '2025-06-18', server_info: {name: macaroon-bible-evidence, version: 0.3.0}, capabilities: {experimental: {}, tools: {listChanged: false}}}
+    notifications_initialized: {http_status: 202}
+    tools_list: {http_status: 200, content_type: application/json, tool_count: 11, file: mcp/macaroonnetwork-com-bible-evidence-mcp-tools.json}
+  tools:
+  - {name: faith_scripture_lookup, required: [source_id, book_id, chapter, verse_start, verse_end], description: Retrieve one to five exact same-chapter verses from pinned BSB or WEB evidence.}
+  - {name: faith_passage_context_preview, required: [source_id, book_id, chapter, verse], description: Return the requested verse with one same-chapter verse before and after; no generated interpretation.}
+  - {name: faith_passage_compare_preview, required: [book_id, chapter, verse], description: Compare one exact verse in BSB and WEB without blending or interpreting.}
+  - {name: faith_cross_references_preview, required: [source_id, book_id, chapter, verse], description: Return one sourced cross-reference for an exact verse with relationship attribution.}
+  - {name: faith_scripture_search_preview, required: [source_id, query], description: Return up to three literal corpus matches for a short keyword or phrase.}
+  - {name: faith_topic_guide_preview, required: [source_id, topic], description: Return a deterministic source-labelled evidence guide for one supported topic.}
+  - {name: faith_services_list, required: [], description: List public sale-ready Christian Faith and Theology services.}
+  - {name: faith_services_search, required: [query], description: Search public Christian services with a short non-personal capability query.}
+  - {name: faith_service_detail, required: [service_id], description: Get current details for one public Christian Faith service.}
+  - {name: faith_service_evidence, required: [service_id], description: Get validation evidence and limitations for one public Christian Faith service.}
+  - {name: faith_service_page, required: [service_id], description: Get an external Macaroon page without executing or paying for a service.}
+corpus_boundary: 66-book Protestant canon; USFM-style book identifiers; every response labels translation, corpus version, attribution, retrieval time and a deterministic content hash; runtime requests do not call third-party scripture APIs (bible-api page).

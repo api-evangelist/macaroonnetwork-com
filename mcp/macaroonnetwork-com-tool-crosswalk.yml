@@ -1,0 +1,286 @@
+generated: '2026-09-19'
+method: derived
+source: Derived by aligning the live MCP tools/list of both servers (mcp/macaroonnetwork-com-mcp-tools.json, mcp/macaroonnetwork-com-bible-evidence-mcp-tools.json)
+  and the three package-only tools named in the PyPI README with the OpenAPI at openapi/macaroonnetwork-com-openapi.json
+  (120 operations). Every operationId below was checked against the spec by the script that wrote this file.
+purpose: Make each MCP tool a first-class discovery unit bound to its backing REST operation so the tool inherits
+  a real inputSchema; record where the MCP surface (Lightning L402 feeds) has no public REST twin and where the
+  REST surface has no tool.
+surfaces:
+  rest_openapi: openapi/macaroonnetwork-com-openapi.json (OpenAPI 3.1.0, 117 paths, 120 operations, 29 schemas;
+    source https://api.macaroonnetwork.com/openapi.json)
+  mcp_router: https://api.macaroonnetwork.com/mcp (tools/list open after initialize; 4 tools live; 3 more in the
+    PyPI 0.4.0 package)
+  mcp_bible_evidence: https://api.macaroonnetwork.com/mcp-faith-evidence-v1/mcp/ (tools/list open; 11 tools)
+  graphql: null
+  a2a: https://api.macaroonnetwork.com/a2a (message/send, tasks/get, tasks/cancel; 79 skills = the 79 sale-ready
+    capability ids, i.e. the same execute_* operations by id)
+crosswalk:
+- tool: macaroons_search
+  server: macaroon-network (remote + package)
+  category: discovery
+  rest:
+  - search_listings_listings_search_get
+  binding: rest
+  confidence: high
+  note: 'Same contract: intent (required) + limit (1-20, default 10 in REST, default 5 max 20 in the tool).'
+- tool: macaroons_execute
+  server: macaroon-network (remote + package)
+  category: commerce
+  rest:
+  - execute_capability_execute__capability_id__post
+  - execute_chain_state_snapshot_v1
+  - execute_christian_confession_guided_v1
+  - execute_christian_confession_reflection_v1
+  - execute_christian_cross_references_v1
+  - execute_christian_devotional_blessing_v1
+  - execute_christian_passage_compare_v1
+  - execute_christian_salvation_guide_v1
+  - execute_christian_scripture_keyword_search_v1
+  - execute_christian_scripture_lookup_v1
+  - execute_christian_scripture_passage_context_v1
+  - execute_christian_scripture_reading_plan_v1
+  - execute_christian_topic_scripture_guide_v1
+  - execute_clinical_trials_search_v1
+  - execute_commercial_use_licence_check_v1
+  - execute_companies_house_live_discovery_v1
+  - execute_companies_house_live_profile_v1
+  - execute_companies_house_live_search_v1
+  - execute_companies_house_search_v1
+  - execute_consensus_science_reviewer_v1
+  - execute_crossref_research_paper_metadata_v1
+  - execute_cve_search_v1
+  - execute_cyber_vulnerability_risk_search_v1
+  - execute_domain_dns_check_v1
+  - execute_domain_ssl_check_v1
+  - execute_domain_trust_report_v1
+  - execute_domain_whois_lookup_v1
+  - execute_drug_medicine_metadata_search_v1
+  - execute_economic_indicator_search_v1
+  - execute_email_domain_deliverability_check_v1
+  - execute_federal_register_search_v1
+  - execute_government_surplus_auction_search_v1
+  - execute_grant_tender_opportunity_search_v1
+  - execute_iban_validate_v1
+  - execute_lei_lookup_v1
+  - execute_merchant_trust_check_v1
+  - execute_nhtsa_vehicle_recall_search_v1
+  - execute_nih_reporter_grant_search_v1
+  - execute_nvd_cve_search_v1
+  - execute_ofac_sanctions_search_v1
+  - execute_polymathica_archive_record_v1
+  - execute_polymathica_archive_search_v1
+  - execute_polymathica_archive_statistics_v1
+  - execute_polymathica_cfd_simulation_validator_v1
+  - execute_polymathica_heated_channel_job_v1
+  - execute_polymathica_research_paper_search_v1
+  - execute_polymathica_scientific_code_search_v1
+  - execute_polymathica_scientific_dataset_search_v1
+  - execute_polymathica_scientific_model_search_v1
+  - execute_polymathica_solver_evidence_report_v1
+  - execute_polymathica_transaction_intelligence_v1
+  - execute_polymathica_validated_solver_index_v1
+  - execute_procurement_search_v1
+  - execute_product_requirements_document_v2
+  - execute_product_safety_recall_search_v1
+  - execute_property_price_search_v1
+  - execute_recalls_search_v1
+  - execute_sanctions_pep_screening_v1
+  - execute_sec_filing_search_v1
+  - execute_tx_new_business_change_feed_v1
+  - execute_uk_logistics_operator_change_feed_v1
+  - execute_uk_logistics_operator_risk_check_v1
+  - execute_uk_parliament_search_v1
+  - execute_universal_macaroon_search_v1
+  - execute_us_weather_forecast_alerts_v1
+  - execute_usgs_earthquake_event_search_v1
+  - execute_vat_validate_v1
+  - execute_vortx_dream_v1
+  - execute_vortx_pinn_v1
+  - execute_vortx_validate_v1
+  - execute_weathernext_point_forecast_v1
+  - execute_world_bank_wdi_indicator_search_v1
+  binding: rest
+  confidence: high
+  note: Generic tool over POST /execute/{capability_id}; the 72 per-capability execute_* operations carry the real
+    input/output schemas and x-payment-info the tool inherits by capability_id. The tool adds predicate, max_spend_sats,
+    resume_macaroon and payment_signature, which map to the request body predicate and the PAYMENT-SIGNATURE header.
+- tool: macaroons_categories
+  server: macaroon-network (package 0.4.0 only; not on the live remote)
+  category: discovery
+  rest:
+  - public_catalog_taxonomy_api_public_taxonomy_get
+  binding: rest
+  confidence: medium
+  note: Tool documented in the PyPI README and llms.txt; not returned by the hosted 0.3.0 tools/list. Mapped by
+    description to the taxonomy endpoint (schema macaroon.catalog-ontology.v1).
+- tool: macaroons_discover_mcp
+  server: macaroon-network (package 0.4.0 only; not on the live remote)
+  category: discovery
+  rest:
+  - public_mcp_servers_api_public_mcp_servers_get
+  binding: rest
+  confidence: medium
+  note: Documented in the PyPI README; maps to the provider MCP registry endpoint (schema macaroon.mcp-registry.v1).
+- tool: macaroons_sources
+  server: macaroon-network (package 0.4.0 only; not on the live remote)
+  category: discovery
+  rest:
+  - public_sources_api_public_sources_get
+  binding: rest
+  confidence: medium
+  note: Documented in the PyPI README; maps to the source/rights registry endpoint (schema macaroon.source-registry.v1).
+- tool: faith_scripture_lookup
+  server: bible-evidence
+  category: scripture
+  rest:
+  - public_gpt_faith_scripture_lookup_api_public_gpt_faith_scripture_lookup_post
+  binding: rest
+  confidence: high
+  note: Identical field set (source_id, book_id, chapter, verse_start, verse_end) to GPTScriptureLookupRequest.
+- tool: faith_passage_context_preview
+  server: bible-evidence
+  category: scripture
+  rest:
+  - execute_christian_scripture_passage_context_v1
+  binding: rest-paid-twin
+  confidence: medium
+  note: Free bounded preview of the paid capability; the REST twin answers 402 and returns the full product.
+- tool: faith_passage_compare_preview
+  server: bible-evidence
+  category: scripture
+  rest:
+  - execute_christian_passage_compare_v1
+  binding: rest-paid-twin
+  confidence: medium
+- tool: faith_cross_references_preview
+  server: bible-evidence
+  category: scripture
+  rest:
+  - execute_christian_cross_references_v1
+  binding: rest-paid-twin
+  confidence: medium
+- tool: faith_scripture_search_preview
+  server: bible-evidence
+  category: scripture
+  rest:
+  - execute_christian_scripture_keyword_search_v1
+  binding: rest-paid-twin
+  confidence: medium
+- tool: faith_topic_guide_preview
+  server: bible-evidence
+  category: scripture
+  rest:
+  - execute_christian_topic_scripture_guide_v1
+  binding: rest-paid-twin
+  confidence: medium
+- tool: faith_services_list
+  server: bible-evidence
+  category: catalogue
+  rest:
+  - public_gpt_faith_services_list_api_public_gpt_faith_services_list_post
+  binding: rest
+  confidence: high
+- tool: faith_services_search
+  server: bible-evidence
+  category: catalogue
+  rest:
+  - public_gpt_faith_services_search_api_public_gpt_faith_services_search_post
+  binding: rest
+  confidence: high
+- tool: faith_service_detail
+  server: bible-evidence
+  category: catalogue
+  rest:
+  - public_gpt_faith_service_detail_post_api_public_gpt_faith_services_detail_post
+  - public_gpt_faith_service_detail_api_public_gpt_faith_services__service_id__get
+  binding: rest
+  confidence: high
+- tool: faith_service_evidence
+  server: bible-evidence
+  category: catalogue
+  rest:
+  - public_gpt_faith_service_evidence_post_api_public_gpt_faith_services_evidence_post
+  - public_gpt_faith_service_evidence_api_public_gpt_faith_services__service_id__evidence_get
+  binding: rest
+  confidence: high
+- tool: faith_service_page
+  server: bible-evidence
+  category: catalogue
+  rest:
+  - public_gpt_faith_service_page_post_api_public_gpt_faith_services_page_post
+  - public_gpt_faith_service_page_api_public_gpt_faith_services__service_id__page_get
+  binding: rest
+  confidence: high
+mcp_only:
+- tool: macaroons_metadata
+  server: macaroon-network
+  reason: Feed-target metadata (freshness, content_hash) for the Lightning L402 change-event feeds; no public REST
+    operation exposes feed targets — the OpenAPI has no /feeds path.
+- tool: macaroons_purchase
+  server: macaroon-network
+  reason: L402 hold-invoice purchase of change-events for a feed target; the REST contract only documents x402 on
+    POST /execute/*, so this rail and resource are MCP-only in public documentation.
+rest_only:
+- group: well-known / discovery documents
+  operations:
+  - a2a_agent_card__well_known_agent_card_json_get
+  - a2a_agent_card_legacy_path__well_known_agent_json_get
+  - agent_capabilities__well_known_agent_capabilities_get
+  - ai_catalog__well_known_ai_catalog_json_get
+  - api_catalog_linkset__well_known_api_catalog_get
+  - api_robots_robots_txt_get
+  - api_root__get
+  - auth_md_auth_md_get
+  - health_health_get
+  - llms_txt__well_known_llms_txt_get
+  - llms_txt_llms_txt_get
+  - oauth_protected_resource__well_known_oauth_protected_resource_get
+  - x402_well_known__well_known_x402_get
+- group: provider onboarding (robots-disallowed /api/provider/)
+  operations:
+  - get_provider_candidate_status_api_provider_candidates__submission_id__get
+  - provider_whoami_api_provider_whoami_get
+  - submit_provider_candidate_api_provider_candidates_post
+- group: listing registry (provider CRUD)
+  operations:
+  - create_listing_listings_post
+  - delete_listing_listings__capability_id__delete
+  - get_listing_listings__capability_id__get
+  - get_listings_listings_get
+- group: public catalogue
+  operations:
+  - public_gpt_faith_action_api_public_gpt_faith_action_post
+  - public_marketplace_stats_api_public_stats_get
+  - public_service_detail_api_public_services__service_id__get
+  - public_service_evidence_api_public_services__service_id__evidence_get
+  - public_service_page_api_public_services__service_id__page_get
+  - public_service_search_api_public_services_search_get
+  - public_services_api_public_services_get
+- group: receipts + routing
+  operations:
+  - get_receipt_api_receipts__receipt_id__get
+  - router_resolve_api_router_resolve_post
+- group: internal / marketing
+  operations:
+  - commercial_page_view_internal_commercial_page_view_post
+  - internal_universal_search_internal_universal_search_post
+  - marketing_email_signup_api_marketing_email_signup_post
+- group: execute (generic price preflight)
+  operations:
+  - execute_payment_required_execute__capability_id__get
+- group: a2a
+  operations:
+  - a2a_health_a2a_health_get
+  - a2a_jsonrpc_a2a_post
+coverage:
+  mcp_tools_live_router: 4
+  mcp_tools_package_only: 3
+  mcp_tools_bible_evidence: 11
+  tools_named: 18
+  tools_bound_to_rest: 16
+  mcp_only: 2
+  rest_operations_total: 120
+  rest_operations_with_a_tool: 85
+  rest_operations_without_a_tool: 35
+  a2a_skills: 79

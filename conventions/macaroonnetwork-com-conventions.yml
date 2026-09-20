@@ -1,0 +1,171 @@
+generated: '2026-09-19'
+method: searched
+source: https://macaroonnetwork.com/auth.md
+derived_from: openapi/macaroonnetwork-com-openapi.json
+docs:
+- https://macaroonnetwork.com/auth.md
+- https://macaroonnetwork.com/terms
+- https://macaroonnetwork.com/listings/vat-validate-v1
+- https://github.com/kevmoz/macaroonnetwork-mcp
+base_url: https://api.macaroonnetwork.com
+media_type: application/json
+api_style: REST over HTTPS (FastAPI); JSON request and response bodies; JSON-RPC 2.0 for MCP and A2A
+auth:
+  style: >-
+    None, by design. auth.md: "Macaroon Network does not use OAuth registration, user accounts, API keys, or
+    bearer credentials for its public pay-per-call services." Discovery endpoints are anonymous; paid resources
+    are gated by x402 v2 payment (HTTP 402 + PAYMENT-REQUIRED, retry with PAYMENT-SIGNATURE, success carries
+    PAYMENT-RESPONSE); a verified payment "authorizes only the requested resource transaction" and creates no
+    session, token or identity. An optional self-assigned X-Macaroon-Agent-Id header scopes the free-tier
+    quota and "is never an identity or trust credential". The RFC 9728 document intentionally advertises no
+    authorization server. Faith Evidence Pro (PayPal) is the one credentialed surface ("authenticated REST
+    access ... key recovery"); its key mechanics are not documented publicly.
+  detail: authentication/macaroonnetwork-com-authentication.yml
+payment:
+  protocol: x402 v2
+  network: Base mainnet (CAIP-2 eip155:8453); Polygon USDC listed as testnet_only/live on a minority of listings; Lightning L402 advertised for feed purchases (MCP macaroons_purchase) and 13 listings' payment_rails, not observed
+  asset: USDC (0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 on Base)
+  headers:
+    challenge: PAYMENT-REQUIRED (base64 JSON x402 v2 requirements; also returned as the 402 body)
+    proof: PAYMENT-SIGNATURE (base64 signed payment payload)
+    receipt: PAYMENT-RESPONSE (on the successful paid response)
+    rail_hints: 'X-Macaroon-Payment-Rail: x402 and X-Macaroon-X402-Network: base (shown in the listing-page curl; optional)'
+  challenge_validity: maxTimeoutSeconds 60
+  price_preflight: GET /execute/{capability_id} returns the 402 and price without executing ("exists purely to advertise the price -- it never executes anything and never takes payment"; also how x402 Bazaar crawlers index it)
+  request_shape: '{ "input": <listing input_schema, additionalProperties false>, "predicate": <acceptance predicate JSON> }'
+  response_shape: '{ "payload": <listing output_schema>, "predicate_passed": bool, "receipt": {...} }'
+  predicate: 'JSON: {"type": "all"|..., "conditions": [{"type": "field_changed"|"count_gte"|..., "field": "$.jsonpath", "value": ..., "operator": "eq"}]}; every listing publishes sample_predicate and predicate_hash (SHA-256) so the buyer can pin exactly what settlement is gated on.'
+  receipts: GET /api/receipts/{receipt_id} -> ReceiptResponse {receipt_id, service_id, request_hash, payment_network, payment_reference, payment_protocol, payment_provider, challenge_reference, settlement_state, amount, currency, execution_id, predicate_hash, predicate_result, validation_run_id, result_hash, created_at}
+  discovery: /.well-known/x402 (resources[]), /.well-known/ai-catalog.json (payment_rails + payment_offers per capability), /.well-known/api-catalog (RFC 9727)
+idempotency:
+  supported: false
+  coverage: none
+  mechanism: null
+  header: null
+  scope: []
+  retention: undocumented
+  description: >-
+    No Idempotency-Key header, parameter or body field exists on any of the 120 operations, and no page
+    documents one. The payment layer gives a narrower guarantee: each signed x402 payment "authorizes only the
+    requested resource transaction" (auth.md) and settles once, so a captured PAYMENT-SIGNATURE cannot be
+    replayed for a second execution. That is replay protection on the money, not idempotency on the call — an
+    agent that times out after sending a paid request has no documented way to learn whether it executed other
+    than GET /api/receipts/{receipt_id}, and a retry needs a new signed payment. Free-tier calls are consumed
+    only on predicate_pass, so a failed or errored free call is not double-counted.
+  gaps:
+  - No idempotency key on POST /execute/{capability_id}, the operation that spends money.
+  - No documented safe-retry guidance for an ambiguous outcome; receipts are the only reconciliation path.
+  - No idempotency key on POST /listings, POST /api/provider/candidates or POST /api/marketing/email-signup.
+dry_run_mode:
+  supported: false
+  status: none
+  note: >-
+    No dry_run / simulate / preview / validate_only parameter exists on any operation. What the provider offers
+    instead is (a) a price preflight — GET /execute/{capability_id} answers 402 without executing; (b) free-tier
+    calls on 42 listings that run the real capability; (c) the free Bible Evidence MCP's *_preview tools, which
+    return bounded real output for the paid christian-* twins; and (d) a published sample_predicate and
+    input_schema per listing so a request can be validated client-side. None of these is a dry run of a paid
+    execution, so this is recorded as none.
+reversibility:
+  grade: documented
+  docs: https://macaroonnetwork.com/terms
+  note: >-
+    The only reversal on the agent path is automatic and pre-settlement: the terms state funds are held, not
+    settled, until the response is checked against the predicate, and "A failed predicate refunds automatically
+    through that same rail; there is no separate chargeback process outside it." No buyer-initiated reversal
+    operation exists and no window is stated for one, so the grade is documented (0.4), not verified. For the
+    two PayPal subscriptions the pages state self-service cancellation "any time", which is a reversal of the
+    recurring charge but not of the API surface. Nothing below asserts a window the provider has not written.
+  write_surfaces:
+  - operation: 'POST /execute/{capability_id} (72 execute_* operations; x402 exact payment)'
+    action: Pay in USDC and run a live-data or scientific capability
+    reversal: automatic refund when the acceptance predicate fails or the bridge errors (money never settles)
+    reversal_operation: null
+    window: null
+    stated_terms:
+    - verbatim: 'Funds are held, not settled, until the response is checked against the predicate you saw before paying. A failed predicate refunds automatically through that same rail; there is no separate chargeback process outside it.'
+    - verbatim: "To the maximum extent permitted by law, Macaroon Network's total liability arising from a listing is limited to the amount actually paid for that specific request."
+    grade: documented
+    note: A passed predicate settles and cannot be reversed; the data has been delivered in-band. No refund for a settled call is offered anywhere.
+  - operation: MCP macaroons_purchase (Lightning L402 hold invoice; feed change-events)
+    action: Buy change-events for a feed target
+    reversal: hold invoice settles only if the predicate passes, "otherwise it is fully refunded" (tool description)
+    reversal_operation: null
+    window: null
+    grade: documented
+  - operation: execute_polymathica_heated_channel_job_v1 (asynchronous GPU job, 0.25 USDC)
+    action: Start a validated-workflow PINN training job "without holding an HTTP request open during training"
+    reversal: none documented
+    reversal_operation: null
+    window: null
+    grade: none
+    note: No cancel-job operation exists in the contract.
+  - operation: create_listing_listings_post -> delete_listing_listings__capability_id__delete
+    action: Provider registers a capability manifest
+    reversal: DELETE /listings/{capability_id} (204)
+    reversal_operation: delete_listing_listings__capability_id__delete
+    window: null
+    grade: documented
+    note: Provider-side surface; robots.txt on the API host disallows /api/provider/ and the whoami endpoint 404s anonymously, so this is not a public buyer surface.
+  - operation: submit_provider_candidate_api_provider_candidates_post
+    action: Submit a candidate capability for review
+    reversal: none documented
+    window: null
+    grade: none
+  - operation: marketing_email_signup_api_marketing_email_signup_post
+    action: Join the new-listings waitlist
+    reversal: none documented on the API; the waitlist page links the privacy policy, which offers deletion by email
+    window: null
+    grade: none
+  - operation: PayPal subscriptions (Faith Evidence Pro, Logistics Compliance Pro) — not API operations
+    action: Recurring charge
+    reversal: 'self-service cancellation — "Cancel any time from your private lookup page" / "self-service cancellation"'
+    window: any time (stated)
+    grade: documented
+    note: Cancellation stops future charges; no refund term for a current period is stated.
+pagination:
+  style: limit-only
+  request_params:
+    limit: 1-20, default 10 (GET /listings/search, GET /api/public/services/search); 1-20 default 5 on MCP macaroons_search
+    category: optional filter on /api/public/services and /api/public/services/search
+    intent / query: required free-text on the search endpoints
+  response_fields: {listings: array (ListingsResponse / SearchResponse, with similarity on search hits), services: array (PublicServicesResponse)}
+  cursor: none
+  note: GET /listings and GET /api/public/services return the whole registry (85 and 79 rows on 2026-09-19); there is no cursor, offset or next link.
+field_expansion:
+  supported: false
+  note: PublicServiceDetail adds provider, inputs and outputs over PublicServiceSummary; the detail is a separate GET, not an expand parameter.
+metadata:
+  supported: false
+  note: No client metadata field; every response carries provenance metadata instead (content_hash, generated_at, sources_checked, predicate_hash, receipt).
+request_tracing:
+  request_id_header: x-request-id (UUID, observed on every API-host response; undocumented)
+  correlation_fields: [RouterResolveResponse.request_id, ReceiptResponse.receipt_id, execution_id, validation_run_id, request_hash, result_hash, predicate_hash, content_hash]
+versioning:
+  scheme: capability-id suffix (-v1, one -v2); OpenAPI info.version 1.0.0; no version in paths or headers
+  detail: lifecycle/macaroonnetwork-com-lifecycle.yml
+error_envelope:
+  media_type: application/json
+  rfc9457: false
+  shape: '{ "detail": string | ValidationError[] }; 402 carries the x402 JSON body + PAYMENT-REQUIRED header; JSON-RPC error objects on MCP/A2A'
+  detail: errors/macaroonnetwork-com-problem-types.yml
+rate_limits:
+  signal_status: undocumented (no 429 declared)
+  headers: none; x-request-id only
+  quotas: free-tier allowances per agent per capability; subscription quotas
+  detail: rate-limits/macaroonnetwork-com-rate-limits.yml
+webhooks:
+  supported: false
+  note: No webhook, callback or AsyncAPI surface. "Change feed" listings (tx-new-business-change-feed-v1, uk-logistics-operator-change-feed-v1, gpu-llm-pricing-changes-v1) are pull-based paid queries; the Logistics Pro watchlist sends human email alerts.
+robots:
+  api_host: 'User-agent: * Allow: /.well-known/, /openapi.json, /listings, /execute/, /a2a, /api/public/; Disallow: /payments/, /api/provider/, /api/admin/'
+  apex: 'Allow: /; Sitemap: https://macaroonnetwork.com/sitemap.xml'
+other_conventions:
+- name: Capability id is the join key everywhere
+  detail: The same id is the OpenAPI path suffix, the A2A skill id, the MCP macaroons_execute capability_id, the api-catalog anchor, the x402 resource URL and the listing page slug.
+- name: Amounts
+  detail: amount_atomic is USDC in 6-decimal atomic units (3000 = 0.003 USDC); /listings also shows a legacy price_sats field.
+- name: Provenance fields
+  detail: Responses label source, translation/corpus version, retrieval time and a deterministic content_hash (Bible evidence); listings publish validation evidence including on-chain canary transaction hashes.
+- name: Agent-facing guidance in the spec
+  detail: 'info.x-guidance: "Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission."'

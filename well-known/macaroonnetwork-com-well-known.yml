@@ -1,0 +1,221 @@
+generated: '2026-09-19'
+method: probed
+source: >-
+  Live GET probes of the named /.well-known/* path list (plus the root-level /apis.json and /apis.yml) on
+  macaroonnetwork.com, www.macaroonnetwork.com and api.macaroonnetwork.com — the API baseURL host, which is
+  also the MCP server host (RFC 9728 puts protected-resource metadata on the resource server) and the A2A
+  host — on 2026-09-19. Every row is a request that was issued; every status is the one returned. The
+  protected-resource document names no authorization_servers, so there is no third auth-server host to probe.
+summary:
+  hosts_probed: 3
+  documents_served: 14
+  distinct_documents: 10
+  hit_count: 14
+  path_echo_control: passed
+  note: >-
+    A real, unusually complete discovery surface. The apex serves an RFC 9116 security.txt, an RFC 9728
+    protected-resource document and an RFC 9727 api-catalog linkset (79 anchors, application/linkset+json);
+    www mirrors the apex byte-for-byte on those paths (same origin). The API host serves the same
+    protected-resource and api-catalog documents plus the A2A agent card at both the canonical and legacy
+    paths, an x402 discovery document, an agent catalog (ai-catalog.json, schema macaroonnetwork.agent-catalog.v1,
+    79 capabilities with input/output schemas, prices and payment rails), an agent-capabilities index and an
+    llms.txt under /.well-known/. Misses are real: the apex answers its HTML 404 page (12,830 bytes) and the API
+    host answers application/json {"detail":"Not Found"} (22 bytes) — not SPA shells — and a negative-control path
+    that cannot exist 404s on all three hosts, so every 200 below is a served document. No OpenID/OAuth
+    authorization-server discovery (consistent with auth.md: "OAuth is not implemented"), no ai-plugin.json, no
+    UCP/ACP agentic-commerce manifest, no AAuth resource document and no APIs.json anywhere. One defect worth
+    a provider note: both api-catalog copies point service-desc at https://macaroonnetwork.com/openapi.json,
+    which returns the apex HTML 404 — the real spec is at https://api.macaroonnetwork.com/openapi.json.
+hosts:
+- host: macaroonnetwork.com
+  role: Website (apex); PayPal-side human products; Next.js behind Cloudflare
+  documents:
+  - path: /.well-known/security.txt
+    status: 200
+    content_type: text/plain; charset=UTF-8
+    bytes: 167
+    file: macaroonnetwork-com-security.txt
+    standard: RFC 9116
+    fields: [Contact, Expires, Preferred-Languages, Canonical]
+    note: 'Contact: mailto:security@macaroonnetwork.com; Expires 2027-08-07T00:00:00.000Z; Canonical points at this URL. No Policy, Encryption, Acknowledgments or Hiring lines.'
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    content_type: application/json
+    bytes: 178
+    file: macaroonnetwork-com-oauth-protected-resource.json
+    standard: RFC 9728
+    note: 'resource https://api.macaroonnetwork.com, resource_name "Macaroon Network API", resource_documentation https://macaroonnetwork.com/auth.md, bearer_methods_supported []. No authorization_servers — intentional per auth.md.'
+  - path: /.well-known/api-catalog
+    status: 200
+    content_type: application/linkset+json
+    bytes: 30926
+    file: macaroonnetwork-com-api-catalog.json
+    standard: RFC 9727
+    note: 79 linkset entries, one per POST /execute/<capability-id> anchor on api.macaroonnetwork.com, each with service-desc, service-doc and status links. The service-desc href (https://macaroonnetwork.com/openapi.json) 404s; the spec lives on the API host.
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/ucp.json
+    status: 404
+  - path: /.well-known/acp.json
+    status: 404
+  - path: /.well-known/aauth-resource.json
+    status: 404
+  - path: /.well-known/apis.json
+    status: 404
+  - path: /apis.json
+    status: 404
+  - path: /apis.yml
+    status: 404
+  - path: /.well-known/api-catalog.json
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+    note: Served only on the API host (see a2a/).
+  - path: /.well-known/agent.json
+    status: 404
+  - path: /.well-known/x402
+    status: 404
+  - path: /.well-known/ai-catalog.json
+    status: 404
+  - path: /.well-known/agent-capabilities
+    status: 404
+  - path: /.well-known/llms.txt
+    status: 404
+    note: The apex serves llms.txt at the root (/llms.txt, 200, 21,138 bytes; saved in llms/) rather than under /.well-known/.
+  - path: /.well-known/macaroonnetwork-com-negative-control-7c2f91ab.json
+    status: 404
+    note: Negative control — a path that cannot exist. 404 (HTML, 12,830 bytes) proves the host does not echo paths.
+- host: www.macaroonnetwork.com
+  role: Alias of the apex (same origin, same bytes)
+  documents:
+  - path: /.well-known/security.txt
+    status: 200
+    content_type: text/plain; charset=UTF-8
+    bytes: 167
+    file: macaroonnetwork-com-security.txt
+    note: Byte-identical to the apex copy.
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    content_type: application/json
+    bytes: 178
+    file: macaroonnetwork-com-oauth-protected-resource.json
+  - path: /.well-known/api-catalog
+    status: 200
+    content_type: application/linkset+json
+    bytes: 31558
+    file: macaroonnetwork-com-api-catalog-api-host.json
+    note: 31,558 bytes here versus 30,926 on the apex; the same 79 anchors — the byte difference is serialisation, not content.
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/ucp.json
+    status: 404
+  - path: /.well-known/acp.json
+    status: 404
+  - path: /.well-known/aauth-resource.json
+    status: 404
+  - path: /.well-known/apis.json
+    status: 404
+  - path: /apis.json
+    status: 404
+  - path: /apis.yml
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+  - path: /.well-known/x402
+    status: 404
+  - path: /.well-known/ai-catalog.json
+    status: 404
+  - path: /.well-known/agent-capabilities
+    status: 404
+  - path: /.well-known/macaroonnetwork-com-negative-control-7c2f91ab.json
+    status: 404
+- host: api.macaroonnetwork.com
+  role: API baseURL host, MCP server host (/mcp and /mcp-faith-evidence-v1/mcp/) and A2A host (/a2a); FastAPI behind Cloudflare
+  documents:
+  - path: /.well-known/security.txt
+    status: 404
+    note: security.txt is published on the apex, which is the registrable domain RFC 9116 expects.
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    content_type: application/json
+    bytes: 178
+    file: macaroonnetwork-com-oauth-protected-resource.json
+    standard: RFC 9728
+    note: The MCP resource host serves the document (identical to the apex copy). No authorization_servers; bearer_methods_supported []. Path-scoped variants (/.well-known/oauth-protected-resource/mcp and .../mcp-faith-evidence-v1/mcp) 404.
+  - path: /.well-known/api-catalog
+    status: 200
+    content_type: application/linkset+json
+    bytes: 31558
+    file: macaroonnetwork-com-api-catalog-api-host.json
+    standard: RFC 9727
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/ucp.json
+    status: 404
+  - path: /.well-known/acp.json
+    status: 404
+  - path: /.well-known/aauth-resource.json
+    status: 404
+  - path: /.well-known/apis.json
+    status: 404
+  - path: /apis.json
+    status: 404
+  - path: /apis.yml
+    status: 404
+  - path: /.well-known/api-catalog.json
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 200
+    content_type: application/json
+    bytes: 41131
+    file: ../a2a/macaroonnetwork-com-agent-card.json
+    standard: A2A Agent Card (protocolVersion 0.3.0)
+    note: Saved verbatim under a2a/ and graded conformant in a2a/macaroonnetwork-com-a2a.yml.
+  - path: /.well-known/agent.json
+    status: 200
+    content_type: application/json
+    bytes: 41131
+    file: ../a2a/macaroonnetwork-com-agent-card.json
+    note: Legacy pre-0.3 path; byte-identical to the canonical card, so not saved twice.
+  - path: /.well-known/x402
+    status: 200
+    content_type: application/json
+    bytes: 5177
+    file: macaroonnetwork-com-x402.json
+    standard: x402 discovery document (version 1; resources[] of 72 paid execute URLs)
+  - path: /.well-known/ai-catalog.json
+    status: 200
+    content_type: application/json
+    bytes: 296012
+    file: macaroonnetwork-com-ai-catalog.json
+    standard: provider schema macaroonnetwork.agent-catalog.v1
+    note: 79 capabilities with id, description, endpoint, price, predicate_hash, payment_rails/offers, free_tier, validation evidence (on-chain canary transactions), input_schema, output_schema and example_request. The home page calls this "the front door for agents".
+  - path: /.well-known/agent-capabilities
+    status: 200
+    content_type: application/json
+    bytes: 235108
+    file: macaroonnetwork-com-agent-capabilities.json
+    standard: provider schema (version 1.0; registry_url, search_url template, listings[])
+  - path: /.well-known/llms.txt
+    status: 200
+    content_type: text/plain; charset=utf-8
+    bytes: 1133
+    file: ../llms/macaroonnetwork-com-api-llms.txt
+    note: Also served at /llms.txt on this host (same bytes). The richer, capability-by-capability llms.txt is the apex one in llms/macaroonnetwork-com-llms.txt.
+  - path: /.well-known/macaroonnetwork-com-negative-control-7c2f91ab.json
+    status: 404
+    note: Negative control — application/json {"detail":"Not Found"}, 22 bytes. The host does not echo paths.

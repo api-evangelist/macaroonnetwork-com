@@ -1,0 +1,84 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for Macaroon Network Agent Services
+  version: 1.0.0
+extends: openapi/macaroonnetwork-com-openapi.json
+x-generated: '2026-09-19'
+x-method: generated
+x-source: openapi/macaroonnetwork-com-openapi.json
+actions:
+- target: $.info
+  update:
+    x-apievangelist:
+      catalog: https://apis.io/macaroonnetwork-com
+      provider: Macaroon Network
+      maintainer: Kin Lane <kin@apievangelist.com>
+      artifacts:
+      - apis.yml
+      - a2a/macaroonnetwork-com-a2a.yml
+      - mcp/macaroonnetwork-com-mcp.yml
+      - mcp/macaroonnetwork-com-tool-crosswalk.yml
+      - conventions/macaroonnetwork-com-conventions.yml
+      - errors/macaroonnetwork-com-problem-types.yml
+      - conformance/macaroonnetwork-com-conformance.yml
+      - lifecycle/macaroonnetwork-com-lifecycle.yml
+      - plans/macaroonnetwork-com-plans-pricing.yml
+      - rate-limits/macaroonnetwork-com-rate-limits.yml
+      - well-known/macaroonnetwork-com-well-known.yml
+    termsOfService: https://macaroonnetwork.com/terms
+    contact:
+      name: Macaroon Network
+      email: hello@macaroonnetwork.com
+      url: https://macaroonnetwork.com/
+- target: $
+  update:
+    servers:
+    - url: https://api.macaroonnetwork.com
+      description: Production (the only environment; x402 settles on Base mainnet). The provider's spec omits servers[]; this host is stated by the api-catalog anchors, the RFC 9728 document and llms.txt.
+    externalDocs:
+      description: Listing pages with per-capability input/output contracts, predicate and curl integration steps
+      url: https://macaroonnetwork.com/listings
+- target: $
+  update:
+    tags:
+    - {name: discovery, description: Anonymous listing, search, taxonomy, MCP-server and source registries}
+    - {name: execute, description: Pay-per-call capabilities gated by x402 v2 (402 + PAYMENT-REQUIRED)}
+    - {name: receipts, description: Commercial receipts for paid executions}
+    - {name: gpt-faith, description: Read-only Bible evidence GPT Action surface}
+    - {name: a2a, description: Agent2Agent JSON-RPC endpoint and card}
+    - {name: well-known, description: Discovery documents served under /.well-known/}
+    - {name: provider, description: Provider onboarding and listing management (robots-disallowed)}
+    - {name: internal, description: Internal / marketing endpoints}
+- target: $.paths[?(@property.match(/^\/execute\//))].post
+  update:
+    tags: [execute]
+- target: $.paths[?(@property.match(/^\/execute\//))].get
+  update:
+    tags: [execute]
+- target: $.paths[?(@property.match(/^\/(listings|api\/public\/(services|taxonomy|mcp-servers|sources|stats)|api\/router)/))].*
+  update:
+    tags: [discovery]
+- target: $.paths[?(@property.match(/^\/api\/receipts/))].get
+  update:
+    tags: [receipts]
+- target: $.paths[?(@property.match(/^\/api\/public\/gpt\/faith/))].*
+  update:
+    tags: [gpt-faith]
+- target: $.paths[?(@property.match(/^\/(a2a|\.well-known\/agent)/))].*
+  update:
+    tags: [a2a]
+- target: $.paths[?(@property.match(/^\/(\.well-known|llms\.txt|auth\.md|robots\.txt|health)/))].get
+  update:
+    tags: [well-known]
+- target: $.paths[?(@property.match(/^\/api\/provider/))].*
+  update:
+    tags: [provider]
+- target: $.paths[?(@property.match(/^\/(internal|api\/marketing)/))].*
+  update:
+    tags: [internal]
+- target: $.paths['/execute/{capability_id}'].post
+  update:
+    x-apievangelist-notes:
+      payment: x402 v2 — 402 + PAYMENT-REQUIRED, retry with PAYMENT-SIGNATURE, success carries PAYMENT-RESPONSE; requirement valid maxTimeoutSeconds 60
+      reversibility: predicate-gated settlement; failed predicate refunds automatically; settled calls are not reversible (conventions/macaroonnetwork-com-conventions.yml)
+      idempotency: none — no Idempotency-Key; reconcile via GET /api/receipts/{receipt_id}

@@ -1,0 +1,60 @@
+generated: '2026-09-19'
+method: derived
+source: openapi/macaroonnetwork-com-openapi.json
+docs:
+- https://api.macaroonnetwork.com/api/public/taxonomy
+- https://api.macaroonnetwork.com/api/public/sources
+- https://api.macaroonnetwork.com/api/public/mcp-servers
+notation: relationships use has_one / has_many / belongs_to with the foreign-key field name; direction is from the entity that owns the reference.
+description: >-
+  Derived from the 29 component schemas in the OpenAPI ($ref links: ListingsResponse->Listing,
+  SearchResponse->SearchResultListing, PublicServicesResponse->PublicServiceSummary,
+  AgentCapabilitiesResponse->CapabilityEntry, AgentCatalogResponse->AgentCatalogCapability,
+  HTTPValidationError->ValidationError) and the id-reference fields observed in the live registries
+  (provider_id, category_id, mcp_server_id, source_ids, service_id, predicate_hash, receipt_id). The catalogue
+  is one product graph projected four ways — Listing (registry), CapabilityEntry (agent-capabilities),
+  AgentCatalogCapability (ai-catalog) and PublicServiceSummary/Detail (public services) all key on the same
+  capability id.
+entities:
+- {name: Capability, id_field: capability_id / service_id / id, domain: catalogue, description: One sellable capability (e.g. vat-validate-v1); the join key across every surface — OpenAPI path, A2A skill, MCP capability_id, api-catalog anchor, x402 resource URL, listing page slug.}
+- {name: Listing, schema: Listing, domain: registry, description: Registry row for a capability — version, provider, endpoint, price_sats, input_schema, output_schema, sample_predicate, predicate_hash, policy, status, payment.}
+- {name: SearchResultListing, schema: SearchResultListing, domain: registry, description: Listing plus a similarity score from intent search.}
+- {name: CapabilityEntry, schema: CapabilityEntry, domain: agent-discovery, description: The /.well-known/agent-capabilities projection — price, predicate_hash, badges, payment_rails, payment_offers, free_tier, representative_queries, schemas.}
+- {name: AgentCatalogCapability, schema: AgentCatalogCapability, domain: agent-discovery, description: The /.well-known/ai-catalog.json projection — adds validation (with on-chain evidence), validation_staking and subscriptions.}
+- {name: PublicServiceSummary, schema: PublicServiceSummary, domain: public-catalogue, description: Human/GPT-facing service row with category, mcp_server_id, source_ids, price object, trust_status, service_url.}
+- {name: PublicServiceDetail, schema: PublicServiceDetail, domain: public-catalogue, description: Summary plus provider, inputs, outputs.}
+- {name: Provider, id_field: provider_id, domain: registry, description: The party operating a listing — polymathica (47), macaroon (25), macaroon-faith (11), postcodes-io (1), macaroonnetwork (1) on 2026-09-19.}
+- {name: Category, id_field: category_id, domain: taxonomy, description: 'One of 17 categories in the catalog ontology (schema macaroon.catalog-ontology.v1) with mapped_product_count.'}
+- {name: Source, id_field: source id, domain: rights, description: 'A reviewed upstream data source (schema macaroon.source-registry.v1): operator, access_method, authentication, commercial_mode, rights_status, rights_evidence_url, attribution/provenance flags, last_verified_at.'}
+- {name: MCPServer, id_field: mcp server id, domain: distribution, description: 'A Macaroon MCP server (schema macaroon.mcp-registry.v1): role, category_ids, official_registry_name, transports.'}
+- {name: Predicate, id_field: predicate_hash, domain: settlement, description: 'Falsifiable acceptance condition (type + conditions[] of JSONPath field checks) whose SHA-256 is published per listing and echoed on receipts.'}
+- {name: PaymentRail, domain: settlement, description: 'x402_base_usdc / x402_polygon_usdc / l402_lightning with status, network, chain_id, settlement mode, amount_atomic.'}
+- {name: PaymentOffer, domain: settlement, description: 'protocol, intent (exact), currency, unit_amount_atomic, network, provider, availability.'}
+- {name: Receipt, schema: ReceiptResponse, id_field: receipt_id, domain: settlement, description: Commercial receipt for one execution — payment reference/protocol/provider, settlement_state, amount, predicate result, execution and validation run ids, result_hash.}
+- {name: CandidateSubmission, schema: CandidateSubmission, domain: onboarding, description: A provider's proposed capability (capability_id, prices, schemas, sample_predicate, backend_url).}
+- {name: RouterResolution, schema: RouterResolveResponse, domain: routing, description: Result of POST /api/router/resolve — request_id, selected_service, alternatives, selection_evidence for a natural-language intent.}
+- {name: MarketplaceStats, schema: PublicMarketplaceStatsResponse, domain: telemetry, description: independent_sales_24h and revenue in USDC atomic units.}
+relationships:
+- {from: Listing, to: Capability, kind: belongs_to, via: capability_id}
+- {from: Listing, to: Provider, kind: belongs_to, via: provider_id}
+- {from: Listing, to: Predicate, kind: has_one, via: sample_predicate / predicate_hash}
+- {from: Listing, to: PaymentRail, kind: has_many, via: policy.payment_rails}
+- {from: CapabilityEntry, to: Capability, kind: belongs_to, via: capability_id}
+- {from: CapabilityEntry, to: PaymentRail, kind: has_many, via: payment_rails}
+- {from: CapabilityEntry, to: PaymentOffer, kind: has_many, via: payment_offers}
+- {from: AgentCatalogCapability, to: Capability, kind: belongs_to, via: id}
+- {from: PublicServiceSummary, to: Capability, kind: belongs_to, via: service_id}
+- {from: PublicServiceSummary, to: Category, kind: belongs_to, via: category_id}
+- {from: PublicServiceSummary, to: MCPServer, kind: belongs_to, via: mcp_server_id}
+- {from: PublicServiceSummary, to: Source, kind: has_many, via: source_ids}
+- {from: PublicServiceDetail, to: PublicServiceSummary, kind: extends, via: service_id}
+- {from: Category, to: PublicServiceSummary, kind: has_many, via: mapped_product_count}
+- {from: MCPServer, to: Category, kind: has_many, via: category_ids}
+- {from: Receipt, to: Capability, kind: belongs_to, via: service_id}
+- {from: Receipt, to: Predicate, kind: belongs_to, via: predicate_hash}
+- {from: RouterResolution, to: PublicServiceSummary, kind: has_one, via: selected_service}
+- {from: RouterResolution, to: PublicServiceSummary, kind: has_many, via: alternatives}
+- {from: CandidateSubmission, to: Capability, kind: proposes, via: capability_id}
+- {from: HTTPValidationError, to: ValidationError, kind: has_many, via: detail}
+projections_of_one_capability:
+  note: The same 79 capabilities appear as OpenAPI operations (execute_<id>), A2A skills (id), api-catalog anchors, x402 resources, CapabilityEntry rows, AgentCatalogCapability rows, PublicServiceSummary rows and Listing rows (85 registry rows include 6 not yet sale-ready).

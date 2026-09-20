@@ -1,0 +1,55 @@
+generated: '2026-09-19'
+method: searched
+source: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+docs:
+- https://macaroonnetwork.com/auth.md
+- https://macaroonnetwork.com/bible-api
+- https://macaroonnetwork.com/logistics-pro
+limit_count: 4
+summary: >-
+  Macaroon Network publishes no requests-per-second ceiling, no 429 behaviour and no rate-limit headers; the
+  spec declares none and no page documents them. What it does publish, machine-readably in ai-catalog.json and
+  /listings, is per-listing free-tier allowances, and on the product pages two subscription quotas. Live
+  responses on the API host carry an x-request-id (UUID) and Cloudflare headers but no X-RateLimit-*,
+  RateLimit-* or Retry-After. The only runtime throttle signal an agent will meet is economic: HTTP 402 with a
+  PAYMENT-REQUIRED header whose requirement expires after maxTimeoutSeconds 60.
+headers:
+  request_id: x-request-id (observed on every API-host response; not declared in the spec)
+  rate_limit: none declared or observed
+  retry_after: none declared or observed
+  exhaustion_status: undocumented (no 429 in the contract)
+rate_limits:
+- name: Free-tier calls per agent per capability
+  scope: per self-declared X-Macaroon-Agent-Id, per capability
+  limit: 5 (22 listings), 20 (6 listings) or 50 (3 listings)
+  window: allowance, not a time window — consumed only when the acceptance predicate passes (free_tier.consumes_on predicate_pass)
+  metric: successful call
+  applies_to: 31 listings with free_tier.scope per_agent_per_capability, e.g. sanctions-pep-screening-v1 (5), companies-house-live-search-v1 (20), uk-postcode-lookup (50)
+  abuse_control: 'free_tier.abuse_control on 10 of them: "self_declared_agent_id_until_account_auth_ships"'
+  source: https://api.macaroonnetwork.com/.well-known/ai-catalog.json (free_tier objects); auth.md ("An agent may optionally send a self-assigned X-Macaroon-Agent-Id header purely to scope its own free-tier quota")
+- name: Christian evidence listings promotional free calls
+  scope: per agent or IP ("agent_or_ip_promotional_not_identity")
+  limit: 5
+  window: day
+  metric: call
+  applies_to: 11 christian-* listings (scripture lookup, keyword search, passage context, reading plan, topic guide, cross references, passage compare, devotional blessing, salvation guide, confession reflection, guided confession)
+  source: https://api.macaroonnetwork.com/.well-known/ai-catalog.json (free_tier {calls 5, period day, scope agent_or_ip_promotional_not_identity})
+- name: Faith Evidence Pro monthly allowance
+  scope: per subscription
+  limit: 50000
+  window: UTC calendar month ("an atomic 50,000-call UTC-month allowance")
+  metric: extended API call
+  applies_to: authenticated REST access to the eleven evidence operations
+  overage: not stated
+  source: https://macaroonnetwork.com/bible-api
+- name: Logistics Compliance Pro monthly checks
+  scope: per subscription
+  limit: 500
+  window: month
+  metric: check
+  applies_to: UK Haulage Fraud & Identity Check, UK Logistics Operator Risk Check, EU VAT Counterparty Check via the private lookup page
+  source: https://macaroonnetwork.com/logistics-pro
+related_limits_not_rate_limits:
+- 'x402 maxTimeoutSeconds 60 — validity of a PAYMENT-REQUIRED requirement (402 challenge, 2026-09-19).'
+- 'limit query parameter 1-20 (default 10) on GET /listings/search and GET /api/public/services/search; MCP macaroons_search limit max 20 (default 5).'
+- 'MCP macaroons_execute / macaroons_purchase max_spend_sats — a caller-side spend cap, default 100 sats.'

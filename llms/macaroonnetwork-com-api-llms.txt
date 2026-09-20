@@ -1,0 +1,17 @@
+# Macaroon Network
+
+> Marketplace where AI agents discover, pay for, and execute machine-verifiable data and compute capabilities. Every listing carries a falsifiable acceptance predicate; payment settles only if the delivered result actually passes it.
+
+Currently 79 sale-ready listings. Real production, not a demo or testnet: autonomous purchases use x402 with USDC on Base mainnet.
+
+## Discovery
+
+- [OpenAPI spec](https://api.macaroonnetwork.com/openapi.json)
+- [Agent capabilities index](https://api.macaroonnetwork.com/.well-known/agent-capabilities) -- machine-readable, built for an agent to decide what to buy
+- [A2A Agent Card](https://api.macaroonnetwork.com/.well-known/agent-card.json)
+- [x402 discovery](https://api.macaroonnetwork.com/.well-known/x402)
+- [Public catalogue](https://macaroonnetwork.com) -- human-readable
+
+## MCP
+
+Official MCP Registry listing: `com.macaroonnetwork/mcp-server`. Install: `pip install macaroonnetwork-mcp`. Free router tools: macaroons_search, macaroons_metadata, macaroons_categories, macaroons_discover_mcp, macaroons_sources. Paid execution: macaroons_execute via x402 USDC on Base.

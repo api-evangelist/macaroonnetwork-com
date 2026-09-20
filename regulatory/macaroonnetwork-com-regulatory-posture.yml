@@ -1,0 +1,105 @@
+generated: '2026-09-19'
+method: searched
+probe: true
+source: https://macaroonnetwork.com/privacy
+docs:
+- https://macaroonnetwork.com/privacy
+- https://macaroonnetwork.com/terms
+- https://macaroonnetwork.com/.well-known/security.txt
+description: >-
+  Harvest only. Records the horizontal-regime evidence Macaroon Network publishes on public pages; which regimes
+  apply is decided by the Kin Score regime map, not here. Hunted in order: (a) artifacts harvested this run —
+  well-known/ security.txt (Contact and Expires only, no Policy line), no trust centre, lifecycle/ (no support
+  period stated), conformance/; (b) conventional paths probed live on 2026-09-19 — /accessibility,
+  /accessibility/vpat, /legal/subprocessors, /legal/dpa, /privacy/requests, /transparency, /trust,
+  /security/sbom, /docs/data-residency, /ai, /ai/transparency, /legal/report-content, /subprocessors, /dpa,
+  /sbom, /vpat, /compliance — all 404 (the apex HTML 404, 13,303 bytes); (c) the privacy policy and terms
+  (both "Last updated: 14 August 2026"), which carry the three signals below. Contact addresses on those pages
+  are Cloudflare-obfuscated in the HTML; decoded, "Privacy questions", "AI use on this site" and the general
+  contact all resolve to hello@macaroonnetwork.com, with security@macaroonnetwork.com for security matters.
+signals:
+  ai_transparency:
+    url: https://macaroonnetwork.com/terms
+    section: AI-generated and automated output
+    also: https://macaroonnetwork.com/privacy (section "AI systems and automated processing")
+    evidence:
+    - source: https://macaroonnetwork.com/terms
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: >-
+        "Some listings are computed by an AI/ML model or another automated system rather than a human — for
+        example, physics-informed neural network (PINN) solvers, asynchronous GPU solve jobs, and governed advisory
+        reports. Any listing whose output is produced this way is labelled 'AI-generated output' on its
+        transparency page. AI-generated and other automated output can be inaccurate, incomplete, or wrong,
+        including when a listing's acceptance predicate passes."
+    - source: https://macaroonnetwork.com/privacy
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: >-
+        "Those models process the scientific or technical input you submit for that request ...; they are
+        self-hosted and are not sent to an external AI provider. This processing does not involve personal data
+        and is not used to make automated decisions about individuals ... Output produced by an AI/ML model or
+        another automated system is labelled as such on that listing's transparency page ... Macaroon Network does
+        not currently generate or host synthetic images, audio, or video of real people. If that changes, this
+        policy and the relevant listing will disclose it before launch."
+    - source: https://macaroonnetwork.com/privacy
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: '"... a good-faith effort to describe the service accurately and to meet applicable law, including EU AI Act transparency obligations and GDPR ..."'
+    note: >-
+      A published, contractual disclosure that named outputs are AI-generated and labelled per listing, that the
+      models are self-hosted (NVIDIA PhysicsNeMo-based PINN solvers), a synthetic-media statement, and an
+      explicit reference to EU AI Act transparency obligations. The substance of an AI-transparency statement,
+      carried in the terms and privacy policy; /ai and /ai/transparency 404.
+  data_subject_request:
+    url: https://macaroonnetwork.com/privacy
+    section: Your choices and rights
+    channel: hello@macaroonnetwork.com
+    rights_named: [access, correction, deletion, restriction, objection, portability, complaint to a regulator]
+    stated_sla: null
+    evidence:
+    - source: https://macaroonnetwork.com/privacy
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: >-
+        "Depending on applicable law, you may have rights to request access, correction, deletion, restriction,
+        objection, or portability of personal data, and to complain to a regulator. Contact
+        hello@macaroonnetwork.com with the request and enough information to identify the relevant records. Some
+        technical logs may need to be retained for security or legal reasons."
+    note: >-
+      A documented request channel and the named rights; no response period is stated (stated_sla left null
+      rather than assumed), no intake form (/privacy/requests 404) and no API endpoint. Retention context on the
+      same page: web-server logs "may be retained for up to 90 days".
+  subprocessors:
+    url: https://macaroonnetwork.com/privacy
+    section: Service providers and transfers
+    dated: '2026-08-14'
+    entries:
+    - {vendor: Cloudflare, purpose: DNS, proxy, TLS and security services}
+    - {vendor: unnamed UK VPS provider, purpose: application hosting, location: United Kingdom}
+    - {vendor: OpenAI, purpose: processes the conversation and sends GPT Action requests when a Macaroon Network GPT is used in ChatGPT}
+    evidence:
+    - source: https://macaroonnetwork.com/privacy
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: >-
+        "Cloudflare provides DNS, proxy, TLS, and security services. The application is hosted on a UK VPS. When
+        you use a Macaroon Network GPT, OpenAI processes the conversation and sends Action requests under the terms
+        and privacy settings that apply to your OpenAI account. These providers may process technical data in the
+        locations described by their own terms and privacy notices."
+    note: >-
+      A prose vendor list inside the dated privacy policy, not a standalone subprocessor table (/legal/subprocessors
+      and /subprocessors 404) and not a DPA (/legal/dpa 404). The VPS host is not named. Recorded because it is a
+      published, dated statement of who processes data; its thinness is visible in the entries.
+not_found:
+  sbom: 'No SBOM at /security/sbom or /sbom; security.txt has no Policy line. Search only — never derived.'
+  support_lifetime: No support period or versioning policy page; capability ids carry version suffixes only (lifecycle/).
+  accessibility_conformance: /accessibility, /accessibility/vpat and /vpat 404; no VPAT or WCAG statement.
+  training_data_summary: None published; the privacy policy says model inputs are not used for automated decisions but publishes no training-data summary.
+  global_privacy_control: No published GPC statement (not tested by header, per contract).
+  data_residency: 'The privacy policy discloses hosting "on a UK VPS" — a location statement, not a residency option or commitment; not recorded as a signal.'
+  incident_notification: No breach-notification commitment or SLA published; no DPA.
+  age_assurance: 'Privacy policy: "The service is not directed to children and should not be used to submit children''s personal information" — a statement of audience, not an assurance mechanism.'
+  notice_and_action: /legal/report-content 404; no reporting channel beyond the contact addresses.
+  transparency_report: /transparency 404.
+  exit_assistance: 'No export/portability documentation; the API is stateless per call and stores no account data ("retention_days: 0" on listings).'

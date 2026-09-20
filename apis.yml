@@ -1,23 +1,246 @@
 aid: macaroonnetwork-com
 name: Macaroon Network
-description: 'Macaroon Network is a company surfaced via the API Evangelist harvest backlog (source: a2a-registry)
-  and added to the network as a stub for full-pipeline profiling.'
+description: >-
+  Macaroon Network is a UK-operated marketplace where autonomous AI agents discover, pay for and execute
+  live-data and scientific-computing capabilities. Seventy-nine sale-ready listings — UK company and haulage
+  checks, sanctions/PEP screening, VAT/IBAN/LEI validation, domain trust, government, health, weather and CVE
+  lookups, source-labelled Bible evidence, and Polymathica/VortX scientific solvers — are sold pay-per-call in
+  USDC on Base over x402 v2 (HTTP 402 + PAYMENT-REQUIRED, retried with PAYMENT-SIGNATURE), with settlement
+  gated on a falsifiable acceptance predicate evaluated against the real response. The surface is agent-native
+  by construction: an OpenAPI 3.1 contract at api.macaroonnetwork.com/openapi.json, a conformant A2A 0.3.0
+  agent card, two live Streamable HTTP MCP servers (the network router and a free read-only Bible Evidence
+  server, both in the official MCP registry), an RFC 9727 api-catalog, RFC 9728 protected-resource metadata,
+  an RFC 9116 security.txt, llms.txt, an x402 discovery document and a JSON agent-capabilities catalogue.
+  Human products (Faith Evidence Pro, Logistics Compliance Pro, ebooks) are sold by PayPal subscription.
 url: https://raw.githubusercontent.com/api-evangelist/macaroonnetwork-com/refs/heads/main/apis.yml
+image: https://macaroonnetwork.com/og-cover.png
 x-type: company
 x-source: harvest:a2a-registry
-x-tier: stub
-x-tier-reason: harvest
+x-tier: profiled
+x-tier-reason: enrichment pass 2026-09-19 (local-v3; was a2a-registry harvest stub)
 specificationVersion: '0.20'
 created: '2026-09-19'
 modified: '2026-09-19'
 tags:
-- Company
-apis: []
+- Agents
+- Agent Commerce
+- A2A
+- MCP
+- x402
+- Data Marketplace
+- Compliance
+- Sanctions Screening
+- Company Data
+- Scientific Computing
+- Bible
+- United Kingdom
+- agent-native
+tags_raw:
+- Agents
+- Agent commerce
+- A2A
+- MCP
+- x402
+- Data marketplace
+- Compliance
+- Sanctions screening
+- Company data
+- Scientific computing
+- Bible
+- United Kingdom
+- Agent-native
+apis:
+- aid: macaroonnetwork-com:agent-services-api
+  name: Macaroon Network Agent Services API
+  description: >-
+    The REST surface behind the marketplace: anonymous discovery (GET /listings, /listings/search?intent=,
+    /api/public/services, /api/public/taxonomy, /api/public/mcp-servers, /api/public/sources, /api/router/resolve),
+    receipts (GET /api/receipts/{receipt_id}), a read-only GPT Action surface for Bible evidence
+    (/api/public/gpt/faith/*), and 72 pay-per-call POST /execute/<capability-id> operations that answer HTTP 402
+    with an x402 v2 PAYMENT-REQUIRED challenge (USDC on Base, eip155:8453) and settle only when the caller's
+    acceptance predicate passes against the delivered payload. OpenAPI 3.1.0, 117 paths, 120 operations, no
+    securitySchemes — payment is the gate, not authentication. Swagger UI at /docs, ReDoc at /redoc.
+  tags:
+  - Agent Commerce
+  - x402
+  - Data Marketplace
+  - Compliance
+  - Scientific Computing
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-openapi.json
+  - type: OpenAPI
+    name: OpenAPI (provider-hosted)
+    url: https://api.macaroonnetwork.com/openapi.json
+  - type: APIReference
+    name: Swagger UI
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    name: Listing pages (input/output contracts, predicate, curl integration)
+    url: https://macaroonnetwork.com/listings
+  - type: Overlay
+    url: overlays/macaroonnetwork-com-openapi-overlay.yaml
+  - type: AICatalog
+    name: Agent catalog (/.well-known/ai-catalog.json)
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:mcp-server
+  name: Macaroon Network MCP Server
+  description: >-
+    The network router MCP server — a live Streamable HTTP endpoint at https://api.macaroonnetwork.com/mcp
+    (serverInfo macaroon-network 0.3.0, protocol 2025-06-18) answering initialize and tools/list anonymously
+    with four tools (macaroons_search, macaroons_metadata, macaroons_purchase, macaroons_execute), plus the
+    same router shipped as a stdio package (pip install macaroonnetwork-mcp, PyPI 0.4.0) listed in the official
+    MCP registry as com.macaroonnetwork/mcp-server. Paid tool calls return the real x402 challenge for the
+    caller's own wallet to sign; the server never holds a wallet.
+  tags:
+  - MCP
+  - Agent Commerce
+  - x402
+  humanURL: https://macaroonnetwork.com/
+  baseURL: https://api.macaroonnetwork.com/mcp
+  properties:
+  - type: MCPServer
+    url: mcp/macaroonnetwork-com-mcp.yml
+  - type: MCPServer
+    name: Remote endpoint (Streamable HTTP)
+    url: https://api.macaroonnetwork.com/mcp
+  - type: ToolCrosswalk
+    url: mcp/macaroonnetwork-com-tool-crosswalk.yml
+  - type: GitHub
+    name: macaroonnetwork-mcp source (founder account, no organization)
+    url: https://github.com/kevmoz/macaroonnetwork-mcp
+- aid: macaroonnetwork-com:bible-evidence-mcp
+  name: Macaroon Bible Evidence MCP Server
+  description: >-
+    A free, read-only Streamable HTTP MCP server at https://api.macaroonnetwork.com/mcp-faith-evidence-v1/mcp/
+    (serverInfo macaroon-bible-evidence 0.3.0) exposing eleven bounded tools over pinned Berean Standard Bible
+    and World English Bible corpora — exact verse lookup, passage context, BSB/WEB comparison, OpenBible
+    cross-references, literal search, topic evidence guides and discovery of the paid Christian services. No
+    wallet, purchase or execution tool is exposed. Listed in the official MCP registry as
+    com.macaroonnetwork/bible-evidence.
+  tags:
+  - MCP
+  - Bible
+  - Religion
+  humanURL: https://macaroonnetwork.com/bible-api
+  baseURL: https://api.macaroonnetwork.com/mcp-faith-evidence-v1/mcp/
+  properties:
+  - type: MCPServer
+    url: mcp/macaroonnetwork-com-bible-evidence-mcp.yml
+  - type: MCPServer
+    name: Remote endpoint (Streamable HTTP)
+    url: https://api.macaroonnetwork.com/mcp-faith-evidence-v1/mcp/
+  - type: Documentation
+    url: https://macaroonnetwork.com/bible-api
+- aid: macaroonnetwork-com:a2a-agent
+  name: Macaroon Network A2A Agent
+  description: >-
+    An Agent2Agent 0.3.0 endpoint at https://api.macaroonnetwork.com/a2a (JSON-RPC; message/send, tasks/get and
+    tasks/cancel implemented) described by a conformant agent card served from both /.well-known/agent-card.json
+    and the legacy /.well-known/agent.json on the API host. The card lists all 79 marketplace capabilities as
+    skills with application/json input and output modes.
+  tags:
+  - A2A
+  - Agents
+  - Agent Commerce
+  humanURL: https://macaroonnetwork.com/
+  baseURL: https://api.macaroonnetwork.com/a2a
+  properties:
+  - type: AgentCard
+    url: a2a/macaroonnetwork-com-a2a.yml
+  - type: AgentCard
+    name: Agent card (provider-hosted)
+    url: https://api.macaroonnetwork.com/.well-known/agent-card.json
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: VulnerabilityDisclosure
+  url: security/macaroonnetwork-com-vulnerability-disclosure.yml
+- type: DomainSecurity
+  url: security/macaroonnetwork-com-domain-security.yml
+- type: AgenticAccess
+  url: agentic-access/macaroonnetwork-com-agentic-access.yml
 - type: Website
   url: https://macaroonnetwork.com/
+- type: Documentation
+  name: Listing pages (per-capability contracts and integration steps)
+  url: https://macaroonnetwork.com/listings
+- type: APIReference
+  name: Swagger UI
+  url: https://api.macaroonnetwork.com/docs
+- type: GettingStarted
+  name: Quick start (curl / Python / MCP, home page)
+  url: https://macaroonnetwork.com/
+- type: Authentication
+  name: auth.md (payment-not-authentication model)
+  url: https://macaroonnetwork.com/auth.md
+- type: Pricing
+  name: Services catalogue with live USDC prices and PayPal subscriptions
+  url: https://macaroonnetwork.com/services
+- type: TermsOfService
+  url: https://macaroonnetwork.com/terms
+- type: PrivacyPolicy
+  url: https://macaroonnetwork.com/privacy
+- type: Support
+  url: mailto:hello@macaroonnetwork.com
+- type: GitHub
+  name: macaroonnetwork-mcp source (founder account, no organization)
+  url: https://github.com/kevmoz/macaroonnetwork-mcp
+- type: AgentCard
+  url: a2a/macaroonnetwork-com-a2a.yml
+- type: MCPServer
+  url: mcp/macaroonnetwork-com-mcp.yml
+- type: WellKnown
+  url: well-known/macaroonnetwork-com-well-known.yml
+- type: SecurityTxt
+  url: well-known/macaroonnetwork-com-security.txt
+- type: APICatalog
+  name: RFC 9727 api-catalog linkset
+  url: well-known/macaroonnetwork-com-api-catalog.json
+- type: LLMsTxt
+  url: llms/macaroonnetwork-com-llms.txt
+- type: LLMsTxt
+  name: llms.txt (API host)
+  url: llms/macaroonnetwork-com-api-llms.txt
+- type: Authentication
+  url: authentication/macaroonnetwork-com-authentication.yml
+- type: Conventions
+  url: conventions/macaroonnetwork-com-conventions.yml
+- type: ErrorCatalog
+  url: errors/macaroonnetwork-com-problem-types.yml
+- type: DataModel
+  url: data-model/macaroonnetwork-com-data-model.yml
+- type: RateLimits
+  url: rate-limits/macaroonnetwork-com-rate-limits.yml
+- type: Plans
+  url: plans/macaroonnetwork-com-plans-pricing.yml
+- type: Conformance
+  url: conformance/macaroonnetwork-com-conformance.yml
+- type: Lifecycle
+  url: lifecycle/macaroonnetwork-com-lifecycle.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Packages
+  url: packages/macaroonnetwork-com-packages.yml
+- type: Security
+  name: security.txt (RFC 9116 security contact)
+  url: https://macaroonnetwork.com/.well-known/security.txt
+- type: AITransparency
+  name: Terms — AI-generated and automated output; Privacy — AI systems and automated processing
+  url: https://macaroonnetwork.com/terms
+- type: DataSubjectRequest
+  name: Privacy policy — Your choices and rights
+  url: https://macaroonnetwork.com/privacy
+- type: Subprocessors
+  name: Privacy policy — Service providers and transfers
+  url: https://macaroonnetwork.com/privacy
+x-enrichment:
+  date: '2026-09-19'
+  status: enriched
+  artifacts_added: 37
+  pass: local-v3

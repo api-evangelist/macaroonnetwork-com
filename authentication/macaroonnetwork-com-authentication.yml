@@ -1,0 +1,73 @@
+generated: '2026-09-19'
+method: searched
+source: https://macaroonnetwork.com/auth.md
+derived_from: openapi/macaroonnetwork-com-openapi.json
+docs:
+- https://macaroonnetwork.com/auth.md
+- https://api.macaroonnetwork.com/.well-known/oauth-protected-resource
+- https://macaroonnetwork.com/listings/vat-validate-v1
+- https://macaroonnetwork.com/bible-api
+summary:
+  types: [none, x402-payment]
+  api_key_in: []
+  oauth2_flows: []
+  oidc: false
+  mutual_tls: false
+  identity_types_supported: [anonymous]
+  note: >-
+    The OpenAPI declares no securitySchemes and no security[] on any of its 120 operations, and that is
+    accurate rather than an omission: auth.md states "Macaroon Network does not use OAuth registration, user
+    accounts, API keys, or bearer credentials for its public pay-per-call services." The mechanical
+    derive-authentication.py pass therefore produced no profile; this file is the documented model.
+description: >-
+  Public discovery endpoints require no identity. Protected commercial resources use the x402 v2 payment
+  protocol: the client receives HTTP 402 with payment requirements in PAYMENT-REQUIRED, authorises payment
+  according to the advertised scheme, retries with PAYMENT-SIGNATURE and receives PAYMENT-RESPONSE. A verified
+  payment "authorizes only the requested resource transaction. It does not create an account, OAuth session,
+  bearer token, API key, or persistent identity." The payment proof "is not a bearer credential for anything
+  beyond the single call it was issued for -- there is nothing to store, refresh, or revoke."
+schemes:
+- name: anonymous
+  type: none
+  applies_to: GET /listings, /listings/search, /listings/{id}, /api/public/*, /api/router/resolve, /api/receipts/{id}, /.well-known/*, /llms.txt, /auth.md, /health, /a2a (JSON-RPC), both MCP servers (initialize, tools/list, free tools), GET /execute/{id} (price preflight)
+  sources: [https://macaroonnetwork.com/auth.md, openapi/macaroonnetwork-com-openapi.json]
+- name: x402-payment
+  type: payment
+  protocol: x402
+  version: v2
+  applies_to: POST /execute/{capability_id} (72 per-capability operations) and paid MCP tool calls (macaroons_execute; macaroons_purchase over L402)
+  challenge: 'HTTP 402; header PAYMENT-REQUIRED = base64 JSON {x402Version 2, resource, accepts[{scheme exact, network eip155:8453, amount, asset USDC 0x8335...2913, payTo, maxTimeoutSeconds 60, extra}], extensions.bazaar}; the same JSON is the response body'
+  proof: 'header PAYMENT-SIGNATURE = base64 signed payment payload from an x402 v2-compatible wallet (Coinbase CDP or self-managed)'
+  receipt: 'header PAYMENT-RESPONSE on the successful paid response; GET /api/receipts/{receipt_id} afterwards'
+  optional_headers: ['X-Macaroon-Payment-Rail: x402', 'X-Macaroon-X402-Network: base']
+  settlement: exact USDC on Base mainnet, predicate-gated (funds held, settled only if the acceptance predicate passes; failed predicate refunds automatically)
+  observed: 'POST https://api.macaroonnetwork.com/execute/vat-validate-v1 -> 402 with PAYMENT-REQUIRED on 2026-09-19'
+  sources: [https://macaroonnetwork.com/auth.md, openapi/macaroonnetwork-com-openapi.json (402 responses + x-payment-info), https://macaroonnetwork.com/listings/vat-validate-v1]
+- name: X-Macaroon-Agent-Id
+  type: header
+  purpose: quota scoping only
+  description: 'An agent may optionally send a self-assigned X-Macaroon-Agent-Id header purely to scope its own free-tier quota -- this is never an identity or trust credential. Listing free_tier objects call it "self_declared_agent_id_until_account_auth_ships".'
+  sources: [https://macaroonnetwork.com/auth.md, https://api.macaroonnetwork.com/.well-known/ai-catalog.json]
+oauth:
+  implemented: false
+  protected_resource_metadata:
+    url: https://api.macaroonnetwork.com/.well-known/oauth-protected-resource
+    also_on: [https://macaroonnetwork.com/.well-known/oauth-protected-resource, https://www.macaroonnetwork.com/.well-known/oauth-protected-resource]
+    resource: https://api.macaroonnetwork.com
+    resource_name: Macaroon Network API
+    resource_documentation: https://macaroonnetwork.com/auth.md
+    bearer_methods_supported: []
+    authorization_servers: []
+    note: 'auth.md: published "for machine-readable resource discovery, but it intentionally advertises no authorization server." /.well-known/oauth-authorization-server and /.well-known/openid-configuration 404 on every host; no dynamic client registration.'
+credentialed_human_surfaces:
+- name: Faith Evidence Pro
+  url: https://macaroonnetwork.com/bible-api
+  note: PayPal subscription ($19/month or $190/year) giving "authenticated REST access to all eleven evidence operations" with "key recovery". The key scheme (header name, issuance) is not documented publicly; not modelled here beyond this note.
+- name: Logistics Compliance Pro
+  url: https://macaroonnetwork.com/logistics-pro
+  note: 'PayPal subscription (£39/month); access is a private lookup link emailed on payment — "No password, no separate account."'
+mcp_auth:
+  router: none (initialize and tools/list anonymous; paid tools return the x402 challenge)
+  bible_evidence: none (free read-only tools; "no API key required for the bounded tools")
+a2a_auth:
+  note: The agent card declares no securitySchemes; POST /a2a answered JSON-RPC anonymously.

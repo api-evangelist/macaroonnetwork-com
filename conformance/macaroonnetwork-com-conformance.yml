@@ -1,0 +1,138 @@
+generated: '2026-09-19'
+method: searched
+source: https://api.macaroonnetwork.com/openapi.json
+derived_from: openapi/macaroonnetwork-com-openapi.json
+docs:
+- https://macaroonnetwork.com/auth.md
+- https://macaroonnetwork.com/terms
+- https://macaroonnetwork.com/bible-api
+summary: >-
+  Macaroon Network's conformance profile is the agent-commerce protocol stack, and an unusually complete one:
+  x402 v2 payment (verified live — a POST to a paid execute path answered HTTP 402 with a PAYMENT-REQUIRED
+  header carrying base64 x402Version 2 requirements for USDC on Base, CAIP-2 eip155:8453, and the x402 Bazaar
+  discovery extension), an A2A 0.3.0 agent card graded conformant, two MCP servers on protocol 2025-06-18
+  listed in the official MCP registry, RFC 9728 protected-resource metadata on both the apex and the resource
+  host, an RFC 9727 api-catalog linkset, an RFC 9116 security.txt, llms.txt, OpenAPI 3.1.0 and JSON Schema
+  2020-12 input/output contracts. It declares no OAuth/OIDC (by design), no RFC 9457 problem details, no
+  RFC 8594 sunset signalling, no idempotency key, and no sector standard — its market (an agent data
+  marketplace) has none to declare, so domain_standard_conformance is not claimed. No certification or
+  compliance programme (SOC 2, ISO 27001, PCI DSS) is published; no Compliance pointer is emitted.
+standards:
+- id: x402
+  name: x402 payment protocol
+  version: v2
+  conforms: true
+  evidence: >-
+    Live probe 2026-09-19: POST https://api.macaroonnetwork.com/execute/vat-validate-v1 with {} returned HTTP 402,
+    header PAYMENT-REQUIRED (base64 JSON: x402Version 2, accepts[0] {scheme exact, network eip155:8453, amount 3000,
+    asset 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 (USDC on Base), payTo, maxTimeoutSeconds 60, extra {name USD
+    Coin, version 2}}, extensions.bazaar with a JSON Schema 2020-12 input/output description) and the same JSON
+    in the body. The OpenAPI declares a 402 response with the PAYMENT-REQUIRED header on all 71 per-capability
+    execute operations and x-payment-info naming PAYMENT-REQUIRED / PAYMENT-SIGNATURE / PAYMENT-RESPONSE.
+    /.well-known/x402 (version 1) lists 72 paid resource URLs. auth.md: "x402 version: v2".
+- id: caip-2
+  name: CAIP-2 chain identifiers
+  conforms: true
+  evidence: network "eip155:8453" (Base mainnet) in the 402 challenge, the ai-catalog payment_rails and the services price objects.
+- id: a2a
+  name: Agent2Agent protocol
+  version: '0.3.0'
+  conforms: true
+  evidence: a2a/macaroonnetwork-com-agent-card.json — protocolVersion 0.3.0, url https://api.macaroonnetwork.com/a2a, preferredTransport JSONRPC, capabilities object, skills[] of 79; POST /a2a answers JSON-RPC with A2A error -32004 listing implemented methods message/send, tasks/get, tasks/cancel. Graded conformant in a2a/macaroonnetwork-com-a2a.yml.
+- id: mcp
+  name: Model Context Protocol
+  version: '2025-06-18'
+  conforms: true
+  evidence: >-
+    Streamable HTTP servers at https://api.macaroonnetwork.com/mcp (serverInfo macaroon-network 0.3.0) and
+    https://api.macaroonnetwork.com/mcp-faith-evidence-v1/mcp/ (macaroon-bible-evidence 0.3.0); initialize -> 200 with
+    mcp-session-id, notifications/initialized -> 202, tools/list -> 200 with inputSchema per tool (4 and 11 tools).
+    Both are published in the official MCP registry (server.json schema 2025-12-11): com.macaroonnetwork/mcp-server
+    0.4.0 and com.macaroonnetwork/bible-evidence 0.3.1, plus three focused stdio servers.
+- id: jsonrpc-2.0
+  name: JSON-RPC 2.0
+  conforms: true
+  evidence: MCP and A2A endpoints both answer well-formed JSON-RPC 2.0 envelopes, including error objects with code/message/data.
+- id: rfc9728-oauth-protected-resource
+  name: OAuth 2.0 Protected Resource Metadata
+  conforms: true
+  evidence: >-
+    /.well-known/oauth-protected-resource served (200, application/json) on macaroonnetwork.com, www and
+    api.macaroonnetwork.com: resource https://api.macaroonnetwork.com, resource_name, resource_documentation,
+    bearer_methods_supported []. authorization_servers is absent; auth.md states this is intentional ("OAuth is not
+    implemented ... intentionally advertises no authorization server"), so the document describes an anonymous,
+    payment-gated resource accurately.
+- id: rfc9727-api-catalog
+  name: API Catalog well-known URI (linkset)
+  conforms: true
+  evidence: >-
+    /.well-known/api-catalog served as application/linkset+json on all three hosts, 79 linkset entries with
+    anchor, service-desc, service-doc and status relations. Defect: every service-desc href is
+    https://macaroonnetwork.com/openapi.json, which returns the apex HTML 404; the contract is at
+    https://api.macaroonnetwork.com/openapi.json.
+- id: rfc9116-security-txt
+  name: security.txt
+  conforms: true
+  evidence: https://macaroonnetwork.com/.well-known/security.txt — Contact mailto:security@macaroonnetwork.com, Expires 2027-08-07T00:00:00.000Z (within the 1-year guidance), Preferred-Languages en, Canonical. No Policy line.
+- id: rfc8615-well-known
+  name: Well-Known URIs
+  conforms: true
+  evidence: Nine distinct documents served under /.well-known/ across the apex and API hosts (well-known/macaroonnetwork-com-well-known.yml); negative-control paths 404.
+- id: llms-txt
+  name: llms.txt
+  conforms: true
+  evidence: https://macaroonnetwork.com/llms.txt (200, text/plain, H1 + blockquote + H2 sections, 79 capability links) and https://api.macaroonnetwork.com/llms.txt (+ /.well-known/llms.txt).
+- id: openapi-3.1
+  name: OpenAPI 3.1.0
+  conforms: true
+  evidence: https://api.macaroonnetwork.com/openapi.json — openapi 3.1.0, 117 paths, 120 operations, every operation with a summary, 91 with descriptions, 82 with examples, 29 component schemas; FastAPI-generated with a hand-authored per-capability layer (x-payment-info, request/response schemas). No servers[] block (the base is stated by the api-catalog anchors, the protected-resource document and llms.txt).
+- id: json-schema-2020-12
+  name: JSON Schema 2020-12
+  conforms: true
+  evidence: >-
+    The x402 Bazaar extension in every 402 challenge declares "$schema": "https://json-schema.org/draft/2020-12/schema"; listing input_schema/output_schema objects in /listings, ai-catalog.json and agent-capabilities are JSON Schema.
+- id: mcp-registry-server-json
+  name: Official MCP Registry server.json
+  version: '2025-12-11'
+  conforms: true
+  evidence: Five active com.macaroonnetwork/* entries at registry.modelcontextprotocol.io with $schema https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json.
+- id: oauth2
+  conforms: false
+  evidence: 'auth.md: "OAuth is not implemented by Macaroon Network." No securitySchemes in the OpenAPI; /.well-known/oauth-authorization-server 404 on every host.'
+- id: oidc
+  conforms: false
+  evidence: /.well-known/openid-configuration 404 on every host.
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: >-
+    Errors use the FastAPI envelope {"detail": ...} (HTTPValidationError on 98 operations; {"detail":"Not Found"} observed on 404) and JSON-RPC error objects; no application/problem+json anywhere in the contract.
+- id: rfc8594-sunset
+  conforms: false
+  evidence: No Sunset or Deprecation header declared; no deprecated operations; no deprecation policy page.
+- id: idempotency-key
+  conforms: false
+  evidence: No Idempotency-Key header, parameter or body field on any operation; not documented on any page. See conventions/macaroonnetwork-com-conventions.yml.
+- id: pagination
+  conforms: false
+  evidence: 'Only a limit parameter (1-20) on /listings/search and /api/public/services/search; no cursor or offset; GET /listings returns the whole registry (85 rows).'
+advertised_not_verified:
+- id: l402
+  name: Lightning L402 (macaroon + hold invoice)
+  note: >-
+    Named in the terms ("settle over Bitcoin Lightning (L402) or ... x402"), in the MCP macaroons_purchase /
+    macaroons_execute tool descriptions and in 13 listing payment_rails entries as "configured" (one
+    "planned_not_deployed"); the OpenAPI documents only x402 on the execute path and no Lightning challenge
+    was requested, so L402 is recorded as advertised rather than conformant.
+- id: x402-polygon
+  note: payment_rails also list x402_polygon_usdc as testnet_only (7 listings) and live_mainnet (5); only the Base rail was observed live.
+- id: agentic-commerce-well-known
+  note: No /.well-known/ucp.json or acp.json; the marketplace's agent-commerce surface is x402 + its own ai-catalog, which the Kin Score agentic_commerce dimension deliberately does not read.
+domain_standard_conformance:
+  claimed: false
+  note: >-
+    An agent data marketplace has no sector standard to sign in its contract (no SCIM/OData/OpenRTB/FHIR shape
+    applies). The nearest signature is protocol-level — x402 v2 headers declared per operation in x-payment-info
+    and the A2A card — and is recorded above, not invented as a domain standard.
+compliance_programme:
+  published: false
+  note: No SOC 2 / ISO 27001 / PCI DSS / GDPR certification page, trust centre or compliance statement beyond the privacy and terms pages' "good-faith effort to meet ... EU AI Act transparency obligations and GDPR". No Compliance pointer emitted.

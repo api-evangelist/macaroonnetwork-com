@@ -1,0 +1,46 @@
+generated: '2026-09-19'
+method: searched
+source: https://api.macaroonnetwork.com/openapi.json
+derived_from: openapi/macaroonnetwork-com-openapi.json
+docs:
+- https://macaroonnetwork.com/terms
+- https://api.macaroonnetwork.com/api/public/sources
+versioning:
+  scheme: version suffix in the capability id, not in the path
+  current_version: OpenAPI info.version 1.0.0; agent card version 1.0.0; MCP router 0.3.0 live (0.4.0 on PyPI and in the MCP registry); Bible Evidence MCP 0.3.0 live (0.3.1 in the registry); catalog schemas macaroonnetwork.agent-catalog.v1, macaroon.catalog-ontology.v1, macaroon.mcp-registry.v1, macaroon.source-registry.v1
+  spec_url: https://api.macaroonnetwork.com/openapi.json
+  base_url: https://api.macaroonnetwork.com
+  policy_published: false
+  note: >-
+    Every capability id ends in -v1 except product-requirements-document-v2 (the only v2) and uk-postcode-lookup
+    (no suffix). Each listing also carries its own version field (1.0.0) and a lifecycle_state (77 PUBLISHED, 2
+    IMPLEMENTED, 1 SALE_READY, 1 VALIDATION_FAILED across 85 registry rows on 2026-09-19), so lifecycle is
+    tracked per listing in the registry rather than per API version. The live MCP servers report older versions
+    than the packages and registry entries published on 2026-09-14. No versioning policy page exists.
+deprecation:
+  policy_published: false
+  sunset_header: false
+  deprecation_header: false
+  rfc8594: false
+  deprecated_operations: []
+  note: >-
+    Zero operations carry deprecated: true. No deprecation, changelog or status page exists (/changelog, /status
+    and /docs on the apex all return the HTML 404). Listing-level retirement would surface as a lifecycle_state
+    change in GET /listings; none is documented as a policy. No Deprecation pointer is emitted.
+status_page:
+  url: null
+  health_endpoints:
+  - 'GET https://api.macaroonnetwork.com/health -> 200 {"status":"ok"}'
+  - 'GET https://api.macaroonnetwork.com/a2a/health -> 200 {"status":"ok","protocol":"a2a"}'
+  - 'GET https://api.macaroonnetwork.com/ -> 200 JSON index naming the openapi, catalogue, x402, agent card, taxonomy, MCP registry and source registry URLs'
+  note: The api-catalog linkset's status relation points at https://macaroonnetwork.com/health, which returns the apex HTML 404; the working health check is on the API host. No StatusPage pointer is emitted.
+sla:
+  url: https://macaroonnetwork.com/terms
+  public_uptime_target: null
+  note: 'Terms: the service and all listing output are provided "as is"; total liability per listing is limited to the amount paid for that request. No uptime commitment.'
+changelog:
+  url: null
+  note: No dated changelog. The closest dated signals are the PyPI release dates (macaroonnetwork-mcp 0.4.0 on 2026-09-14; focused servers 1.1.0 on 2026-09-11), the MCP registry publishedAt stamps, the source registry's last_verified_at dates (2026-09-06 / 2026-09-07) and validation evidence dates inside ai-catalog.json (2026-08-08 through 2026-09-15).
+data_freshness:
+  source_registry: 'GET /api/public/sources — coverage {mapped_products: 15, total_products: 81, complete: false}; each source carries rights_status, rights_evidence_url, last_verified_at and active.'
+  catalogue: 'Home page: "Service catalogue 79 services · updated <ISO timestamp>" rendered live from the registry.'

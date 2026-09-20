@@ -1,0 +1,77 @@
+generated: '2026-09-19'
+method: probed
+source: https://api.macaroonnetwork.com/api/public/services
+docs:
+- https://macaroonnetwork.com/services
+- https://macaroonnetwork.com/bible-api
+- https://macaroonnetwork.com/logistics-pro
+- https://macaroonnetwork.com/terms
+plan_count: 4
+currency: USDC
+model: pay-per-call in USDC on Base via x402 for agents; PayPal monthly/annual subscriptions for two human products; no accounts or API keys for the agent path
+summary: >-
+  Prices are machine-readable: GET /api/public/services returns 79 services, every one with price
+  {status fixed, currency USDC, amount, amount_atomic, network base, chain_id eip155:8453, rail x402}, and the
+  same numbers appear in /.well-known/ai-catalog.json, /listings (as price_sats plus a payment block) and in
+  each 402 challenge. On 2026-09-19 the per-call range was 0.001 USDC (scripture lookup, open-science search,
+  chain state) to 49 USDC (VortX Dream), median 0.003 USDC; 42 of 79 listings carry a free tier (5, 20 or 50
+  calls per self-declared agent id per capability, consumed only when the predicate passes, or 5 calls per day
+  per agent-or-IP on the Christian evidence listings). Two human subscriptions and an ebook shop are billed
+  through PayPal. The services page states every price is "pulled live from the real registry"; the terms say
+  a failed predicate refunds automatically and liability is capped at the amount paid.
+plans:
+- id: pay-per-call-x402
+  name: Agent-payable APIs (x402, USDC on Base)
+  price: 0.001 - 49 USDC per call (fixed per listing)
+  currency: USDC
+  period: per call
+  billing: HTTP 402 -> sign PAYMENT-REQUIRED -> retry with PAYMENT-SIGNATURE; settles only on predicate pass
+  included: free tier on 42 of 79 listings (see rate-limits/macaroonnetwork-com-rate-limits.yml)
+  overage: n/a — every call is priced
+  listing_count: 79
+  price_bands:
+  - {band: 0.001-0.005 USDC, listings: 61, examples: [christian-scripture-lookup-v1 0.001, nvd-cve-search-v1 0.002, vat-validate-v1 0.003, companies-house-search-v1 0.005]}
+  - {band: 0.01-0.05 USDC, listings: 13, examples: [sanctions-pep-screening-v1 0.01, sec-filing-search-v1 0.01, uk-haulage-fraud-identity-check-v1 0.05, christian-confession-guided-v1 0.05]}
+  - {band: 0.1-1 USDC, listings: 2, examples: [christian-salvation-guide-v1 0.1, polymathica-heated-channel-job-v1 0.25]}
+  - {band: 19-49 USDC, listings: 3, examples: [vortx-validate-v1 19, vortx-pinn-v1 29, vortx-dream-v1 49]}
+  categories: {DATA LOOKUP: 22, COMPLIANCE & RISK: 12, FAITH & THEOLOGY: 11, RESEARCH DATA: 9, AI FOR SCIENCE: 5, COMPUTATIONAL RESEARCH: 5, SIMULATION & CFD: 4, DATA & EVIDENCE: 3, DATA & INFRASTRUCTURE: 3, other: 5}
+  limits: ['x402 maxTimeoutSeconds 60 on each challenge', 'execute inputs are additionalProperties false per listing input_schema', 'search limit 1-20']
+  source: https://api.macaroonnetwork.com/api/public/services
+- id: faith-evidence-mcp-free
+  name: Evidence MCP (free)
+  price: 0
+  currency: USD
+  period: n/a
+  included: the 11 bounded read-only Bible evidence tools on https://api.macaroonnetwork.com/mcp-faith-evidence-v1/mcp/ with source labels and provenance; no API key
+  source: https://macaroonnetwork.com/bible-api
+- id: faith-evidence-pro
+  name: Faith Evidence Pro
+  price: 19
+  currency: USD
+  period: month
+  annual_price: 190 USD/year ("save $38")
+  billing: PayPal recurring subscription
+  included: authenticated REST access to all eleven evidence operations; 50,000 extended API calls per UTC month; usage reporting; key recovery; self-service cancellation
+  overage: not stated
+  note: Agent micro-payments for the same capabilities remain available through the x402 services.
+  source: https://macaroonnetwork.com/bible-api
+- id: logistics-compliance-pro
+  name: Logistics Compliance Pro
+  price: 39
+  currency: GBP
+  period: month
+  billing: PayPal recurring subscription; a private lookup link is emailed on payment (no password, no account); cancel any time from that page
+  included: UK Haulage Fraud & Identity Check, UK Logistics Operator Risk Check and EU VAT Counterparty Check, unlimited within 500 checks per month; plain-English findings; branded PDF reports; CSV history export; per-company watchlist email alerts
+  overage: not stated
+  note: The operator-risk and VAT checks are also sold individually as x402 listings.
+  source: https://macaroonnetwork.com/logistics-pro
+human_products_not_api_plans:
+- name: Ebooks
+  price: from £7.99 per title; five-book collections £24.99; 19 PDF guides
+  billing: PayPal one-time; free preview
+  source: https://macaroonnetwork.com/ebooks
+- name: Voluntary support
+  price: £5 / £15 / £50 one-time via PayPal
+  note: 'Home page: "No goods, equity, charitable tax relief or preferential service are provided."'
+planned_not_sold:
+  note: Four ai-catalog entries carry subscriptions[] with status planned (validated-pinn-feed, campaigns-corpus-feed, gpu-llm-pricing-feed, open-science-metadata-feed; target_price_usd_cents 5000/month). Recorded as the provider's own roadmap flag, not as available plans.

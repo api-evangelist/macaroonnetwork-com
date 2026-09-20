@@ -1,0 +1,29 @@
+generated: '2026-09-19'
+method: generated
+source: >-
+  Packaged Agent Skills generated from openapi/macaroonnetwork-com-openapi.json, auth.md and the
+  conventions/errors artifacts. Every operationId named below exists verbatim in the spec (checked by grep).
+  Cross-cutting rules cite ../conventions/, ../errors/ and ../authentication/.
+provider_published:
+  found: false
+  note: >-
+    The home page advertises "12 Verified Skills" from a bundle named polymathica-scientific-skills with the
+    install line `npx macaroon add <skill>`, but no skill files are reachable at any public URL (/skills,
+    /skills.json, /api/public/skills and /.well-known/skills.json all 404 on both hosts; no GitHub repository
+    by that name is public) and the npm package `macaroon` that command resolves to is an unrelated library
+    (js-macaroon 3.0.4, 2019, no bin). The advertised skill names are recorded below for the record; none was
+    saved because none could be fetched.
+  advertised_names: [CFD Evidence Validator, Cross Lab Composition, Drone Lab, Experiment Planning, Find Macaroon Skills, Number Representation Research, Pde Solver Routing, Scientific Governance, Scientific Memory, Scientific Publication, Scientific Visualisation, SkillGuard Evidence Check]
+skills:
+- file: macaroonnetwork-com-discover-and-buy-capability.md
+  name: Discover a capability and buy one execution over x402
+  api: openapi/macaroonnetwork-com-openapi.json
+  operations: [search_listings_listings_search_get, get_listing_listings__capability_id__get, execute_payment_required_execute__capability_id__get, execute_capability_execute__capability_id__post, get_receipt_api_receipts__receipt_id__get]
+- file: macaroonnetwork-com-route-intent-to-service.md
+  name: Route a natural-language intent to the right service and read its evidence
+  api: openapi/macaroonnetwork-com-openapi.json
+  operations: [router_resolve_api_router_resolve_post, public_service_detail_api_public_services__service_id__get, public_service_evidence_api_public_services__service_id__evidence_get, public_catalog_taxonomy_api_public_taxonomy_get, public_sources_api_public_sources_get]
+- file: macaroonnetwork-com-bible-evidence-lookup.md
+  name: Retrieve source-labelled scripture evidence for free
+  api: openapi/macaroonnetwork-com-openapi.json
+  operations: [public_gpt_faith_scripture_lookup_api_public_gpt_faith_scripture_lookup_post, public_gpt_faith_services_list_api_public_gpt_faith_services_list_post, public_gpt_faith_service_evidence_api_public_gpt_faith_services__service_id__evidence_get]

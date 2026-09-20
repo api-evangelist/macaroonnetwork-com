@@ -1,0 +1,70 @@
+generated: '2026-09-19'
+method: searched
+source: https://pypi.org/pypi/macaroonnetwork-mcp/json
+docs:
+- https://github.com/kevmoz/macaroonnetwork-mcp
+- https://registry.modelcontextprotocol.io/v0/servers?search=com.macaroonnetwork
+- https://api.macaroonnetwork.com/llms.txt
+description: >-
+  First-party packages verified against the registries on 2026-09-19. Macaroon Network ships no general-purpose
+  SDK: its client packages are MCP servers (a Python router and three single-capability servers), published
+  under the founder's PyPI/GitHub account and named by the provider's own llms.txt ("Install: pip install
+  macaroonnetwork-mcp") and the official MCP registry. Nothing on npm, RubyGems, crates.io, Maven, NuGet, Go
+  or Packagist. The home page's `npx macaroon add <skill>` resolves to an unrelated npm package (js-macaroon
+  3.0.4, 2019, no executable), so no CLI is recorded. No SDKs pointer is emitted: an MCP server package is a
+  client for agents, not a language SDK for developers.
+packages:
+- language: python
+  registry: pypi
+  name: macaroonnetwork-mcp
+  url: https://pypi.org/project/macaroonnetwork-mcp/
+  source: https://github.com/kevmoz/macaroonnetwork-mcp
+  install: pip install macaroonnetwork-mcp
+  command: macaroonnetwork-mcp
+  kind: mcp-server (stdio; network router)
+  official: true
+  version: 0.4.0
+  published: '2026-09-14'
+  license: MIT
+  requires_python: '>=3.10'
+  dependencies: [mcp>=1.0.0, requests>=2.31.0, jsonpath-ng>=1.6.0]
+  mcp_registry: com.macaroonnetwork/mcp-server
+  note: Author Kevin Smith (kevmoz, West Yorkshire, founder of Polymathica). GitHub repo created 2026-09-08, last push 2026-09-16, 0 stars.
+- language: python
+  registry: pypi
+  name: macaroonnetwork-mcp-companies-house-live-search-v1
+  url: https://pypi.org/project/macaroonnetwork-mcp-companies-house-live-search-v1/
+  source: https://github.com/kevmoz/macaroonnetwork-mcp
+  install: uvx macaroonnetwork-mcp-companies-house-live-search-v1
+  kind: mcp-server (stdio; one capability)
+  official: true
+  version: 1.1.0
+  published: '2026-09-11'
+  mcp_registry: com.macaroonnetwork/companies-house-live-search-v1
+- language: python
+  registry: pypi
+  name: macaroonnetwork-mcp-sanctions-pep-screening-v1
+  url: https://pypi.org/project/macaroonnetwork-mcp-sanctions-pep-screening-v1/
+  source: https://github.com/kevmoz/macaroonnetwork-mcp
+  install: uvx macaroonnetwork-mcp-sanctions-pep-screening-v1
+  kind: mcp-server (stdio; one capability)
+  official: true
+  version: 1.1.0
+  published: '2026-09-11'
+  mcp_registry: com.macaroonnetwork/sanctions-pep-screening-v1
+- language: python
+  registry: pypi
+  name: macaroonnetwork-mcp-uk-logistics-operator-risk-check-v1
+  url: https://pypi.org/project/macaroonnetwork-mcp-uk-logistics-operator-risk-check-v1/
+  source: https://github.com/kevmoz/macaroonnetwork-mcp
+  install: uvx macaroonnetwork-mcp-uk-logistics-operator-risk-check-v1
+  kind: mcp-server (stdio; one capability)
+  official: true
+  version: 1.1.0
+  published: '2026-09-11'
+  mcp_registry: com.macaroonnetwork/uk-logistics-operator-risk-check-v1
+registries_checked:
+- {registry: npm, queries: [macaroonnetwork, macaroon-network, '@macaroonnetwork/sdk', '@macaroon-network/sdk', '@macaroonnetwork/mcp', macaroonnetwork-mcp, macaroon-cli, '@macaroon/cli', macaroon-skills, full-text "macaroon network"], result: none first-party (all 404 or unrelated)}
+- {registry: pypi, queries: [macaroonnetwork, macaroon-network, macaroon_network], result: 404; only the four packages above exist}
+- {registry: github, queries: [org macaroonnetwork, org macaroon-network, org MacaroonNetwork, search macaroonnetwork], result: no organization; one public repo kevmoz/macaroonnetwork-mcp (Python); kevmoz/macaroonnetwork and kevmoz/macaroon-bible-evidence-mcp named by the MCP registry answered 403/404 to the API}
+currency_note: The API's latest dated surface is the PyPI release of 2026-09-14 and MCP-registry publish stamps of the same day; the live remote router still reports 0.3.0, so the package is newer than the hosted server, not older.

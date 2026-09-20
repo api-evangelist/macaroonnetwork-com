@@ -1,0 +1,83 @@
+generated: '2026-09-19'
+method: probed
+source: https://api.macaroonnetwork.com/.well-known/agent-card.json
+description: >-
+  A2A Agent Card observed at /.well-known/agent-card.json on api.macaroonnetwork.com, the provider's API,
+  MCP and A2A host. Grade is measured against the A2A 1.0.0 AgentCard object: 'conformant' passes every
+  structural check, 'near-conformant' is correctly shaped but omits optional fields, 'flavored' fails a hard
+  check. Provider-published by construction — served from the provider's own host; nothing here is derived
+  or generated. The body is saved verbatim in macaroonnetwork-com-agent-card.json.
+card:
+  file: a2a/macaroonnetwork-com-agent-card.json
+  name: Macaroon Network
+  description: >-
+    Marketplace for agent-purchasable capabilities. Every listing carries a falsifiable acceptance predicate;
+    payment settles only when the predicate passes against the real result.
+  url: https://api.macaroonnetwork.com/a2a
+  version: 1.0.0
+  protocol_version: 0.3.0
+  preferred_transport: JSONRPC
+  default_input_modes: [application/json]
+  default_output_modes: [application/json]
+  capabilities: {streaming: false, pushNotifications: false, stateTransitionHistory: false}
+  skills: 79
+  skill_ids_sample: [uk-haulage-fraud-identity-check-v1, sanctions-pep-screening-v1, vat-validate-v1, companies-house-live-search-v1, christian-scripture-lookup-v1, nvd-cve-search-v1, polymathica-heated-channel-job-v1, vortx-pinn-v1]
+  bytes: 41131
+discovery:
+  path: /.well-known/agent-card.json
+  canonical: true
+  host: api.macaroonnetwork.com
+  legacy_path_also_served: /.well-known/agent.json
+  legacy_body_identical: true
+  note: >-
+    The card is served ONLY from the API host. The apex (macaroonnetwork.com) and www return the site's real
+    HTML 404 (12,830 bytes) for both /.well-known/agent-card.json and /.well-known/agent.json, and a
+    negative-control path (/.well-known/macaroonnetwork-com-negative-control-7c2f91ab.json) 404s on all three
+    hosts (application/json {"detail":"Not Found"}, 22 bytes, on the API host), so the 200 is a served document
+    and not a catch-all. Ownership is not in question: the card's url is https://api.macaroonnetwork.com/a2a,
+    the OpenAPI at the same host titles itself "Macaroon Network Agent Services" and declares the
+    /.well-known/agent-card.json and /.well-known/agent.json operations (a2a_agent_card__well_known_agent_card_json_get,
+    a2a_agent_card_legacy_path__well_known_agent_json_get) and POST /a2a (a2a_jsonrpc_a2a_post), and the
+    apex llms.txt, api root JSON and privacy/terms pages all name api.macaroonnetwork.com as the API.
+conformance:
+  spec: A2A 1.0.0
+  grade: conformant
+  protocol_version: 0.3.0
+  preferred_transport: JSONRPC
+  checks:
+    capabilities_is_object: true
+    protocol_version_present: true
+    skills_is_array: true
+    preferred_transport_present: true
+    default_input_modes_present: true
+    default_output_modes_present: true
+  deviations: []
+  observations:
+  - No provider{} block, documentationUrl, iconUrl, securitySchemes or security[] — the endpoint is anonymous by design (auth.md), so the absence of securitySchemes is accurate rather than an omission.
+  - No capabilities.extensions[] — the card does not declare the a2a-x402 payment extension even though every skill settles over x402; payment is carried in HTTP (402 + PAYMENT-REQUIRED) on the REST execute path rather than inside the A2A task flow.
+  - Skills carry id, name, description, tags, inputModes, outputModes but no examples[].
+endpoint_probe:
+  url: https://api.macaroonnetwork.com/a2a
+  method: POST agent/getAuthenticatedExtendedCard (unsupported on purpose, to elicit the method list)
+  http_status: 200
+  response: '{"jsonrpc":"2.0","id":1,"error":{"code":-32004,"message":"This operation is not supported by this agent","data":{"implemented":["message/send","tasks/get","tasks/cancel"]}}}'
+  health: 'GET https://api.macaroonnetwork.com/a2a/health -> 200 {"status":"ok","protocol":"a2a"}'
+  note: No task was created and no message was sent; the probe only established which JSON-RPC methods the agent implements.
+registry:
+  a2aregistry_org: listed (harvest source 2026-09-19, 1 agent, author "Macaroon Network")
+x-evidence:
+  fetched: '2026-09-19'
+  url: https://api.macaroonnetwork.com/.well-known/agent-card.json
+  http_status: 200
+  content_type: application/json
+  bytes: 41131
+  legacy:
+    url: https://api.macaroonnetwork.com/.well-known/agent.json
+    http_status: 200
+    content_type: application/json
+    identical_to_canonical: true
+  negatives:
+  - {url: 'https://macaroonnetwork.com/.well-known/agent-card.json', http_status: 404}
+  - {url: 'https://macaroonnetwork.com/.well-known/agent.json', http_status: 404}
+  - {url: 'https://www.macaroonnetwork.com/.well-known/agent-card.json', http_status: 404}
+  note: Verbatim body saved alongside this manifest. No field inferred.
