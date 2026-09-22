@@ -23,7 +23,7 @@ created: '2026-09-19'
 modified: '2026-09-19'
 tags:
 - Agents
-- Agent Commerce
+- Agentic Commerce
 - A2A
 - MCP
 - x402
@@ -49,6 +49,7 @@ tags_raw:
 - Bible
 - United Kingdom
 - Agent-native
+- Agent Commerce
 apis:
 - aid: macaroonnetwork-com:agent-services-api
   name: Macaroon Network Agent Services API
@@ -61,6 +62,12 @@ apis:
     acceptance predicate passes against the delivered payload. OpenAPI 3.1.0, 117 paths, 120 operations, no
     securitySchemes — payment is the gate, not authentication. Swagger UI at /docs, ReDoc at /redoc.
   tags:
+  - Agentic Commerce
+  - x402
+  - Data Marketplace
+  - Compliance
+  - Scientific Computing
+  tags_raw:
   - Agent Commerce
   - x402
   - Data Marketplace
@@ -95,6 +102,10 @@ apis:
     MCP registry as com.macaroonnetwork/mcp-server. Paid tool calls return the real x402 challenge for the
     caller's own wallet to sign; the server never holds a wallet.
   tags:
+  - MCP
+  - Agentic Commerce
+  - x402
+  tags_raw:
   - MCP
   - Agent Commerce
   - x402
@@ -142,6 +153,10 @@ apis:
     and the legacy /.well-known/agent.json on the API host. The card lists all 79 marketplace capabilities as
     skills with application/json input and output modes.
   tags:
+  - A2A
+  - Agents
+  - Agentic Commerce
+  tags_raw:
   - A2A
   - Agents
   - Agent Commerce
