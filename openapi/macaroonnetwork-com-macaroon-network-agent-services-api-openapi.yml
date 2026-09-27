@@ -1,0 +1,26 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: Macaroon Network Agent Services
+paths:
+  /:
+    get:
+      summary: Api Root
+      description: Small, stable entry point for clients that probe the API hostname.
+      operationId: api_root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Api Root  Get
+      tags:
+      - Macaroon Network Agent Services

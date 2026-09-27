@@ -1,0 +1,124 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services INFRASTRUCTURE & UTILITY API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: INFRASTRUCTURE & UTILITY
+paths:
+  /execute/chain-state-snapshot-v1:
+    post:
+      operationId: execute_chain_state_snapshot_v1
+      summary: Live Chain State Snapshot
+      description: Current block number and gas price for Base and Polygon mainnet, fetched live via RPC on every call. Unlike this catalogue's corpus-search listings, this makes a real outbound network call on purchase -- freshness is the product, not a stored snapshot.
+      tags:
+      - INFRASTRUCTURE & UTILITY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.001000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - network
+                  properties:
+                    network:
+                      enum:
+                      - base
+                      - polygon
+                      type: string
+                      description: Which mainnet to query.
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.block_number
+                      value: 1
+                      operator: gte
+                    - type: field_changed
+                      field: $.provenance.live_rpc_call
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                network: base
+              predicate:
+                type: all
+                conditions:
+                - type: field_changed
+                  field: $.block_number
+                  value: 1
+                  operator: gte
+                - type: field_changed
+                  field: $.provenance.live_rpc_call
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - network
+                    - block_number
+                    - gas_price_wei
+                    - fetched_at
+                    - provenance
+                    properties:
+                      network:
+                        type: string
+                      fetched_at:
+                        type: string
+                      provenance:
+                        type: object
+                        required:
+                        - live_rpc_call
+                      block_number:
+                        type: integer
+                      gas_price_wei:
+                        type: integer
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

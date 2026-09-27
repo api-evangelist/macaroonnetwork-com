@@ -1,0 +1,116 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services Router API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: Router
+paths:
+  /api/router/resolve:
+    post:
+      summary: Router Resolve
+      operationId: router_resolve_api_router_resolve_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouterResolveRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouterResolveResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Router
+components:
+  schemas:
+    RouterResolveRequest:
+      properties:
+        intent:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Intent
+        constraints:
+          additionalProperties: true
+          type: object
+          title: Constraints
+      type: object
+      required:
+      - intent
+      title: RouterResolveRequest
+    RouterResolveResponse:
+      properties:
+        request_id:
+          type: string
+          title: Request Id
+        intent:
+          type: string
+          title: Intent
+        selected_service:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Selected Service
+        alternatives:
+          items:
+            type: string
+          type: array
+          title: Alternatives
+        selection_evidence:
+          additionalProperties: true
+          type: object
+          title: Selection Evidence
+      type: object
+      required:
+      - request_id
+      - intent
+      - selected_service
+      - alternatives
+      - selection_evidence
+      title: RouterResolveResponse
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

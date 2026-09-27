@@ -1,0 +1,1843 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services FAITH & THEOLOGY API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: FAITH & THEOLOGY
+paths:
+  /execute/christian-scripture-passage-context-v1:
+    post:
+      operationId: execute_christian_scripture_passage_context_v1
+      summary: Christian Scripture Passage Context
+      description: Return a requested verse plus up to ten same-chapter verses before and after from a pinned public-domain corpus.
+      tags:
+      - FAITH & THEOLOGY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.001000'
+        protocols:
+        - x402: {}
+        paymentOffers:
+        - intent: exact
+          limits:
+            per_call_atomic: 1000
+          network: base
+          currency: USDC
+          protocol: x402
+          provider: configured_facilitator
+          availability: live
+          unit_amount_atomic: 1000
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - book_id
+                  - chapter
+                  - verse
+                  properties:
+                    after:
+                      type: integer
+                      default: 3
+                      maximum: 10
+                      minimum: 0
+                    verse:
+                      type: integer
+                      maximum: 176
+                      minimum: 1
+                    before:
+                      type: integer
+                      default: 3
+                      maximum: 10
+                      minimum: 0
+                    book_id:
+                      type: string
+                      maxLength: 24
+                      minLength: 2
+                    chapter:
+                      type: integer
+                      maximum: 150
+                      minimum: 1
+                    source_id:
+                      enum:
+                      - bsb
+                      - web
+                      type: string
+                      default: bsb
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 1
+                    - type: field_changed
+                      field: $.product
+                      value: scripture_passage_context
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.runtime_outbound_network_used
+                      value: false
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                after: 2
+                verse: 16
+                before: 2
+                book_id: JHN
+                chapter: 3
+                source_id: web
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 1
+                - type: field_changed
+                  field: $.product
+                  value: scripture_passage_context
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.runtime_outbound_network_used
+                  value: false
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - product
+                    - reference
+                    - requested_verse
+                    - evidence
+                    - source_labels
+                    - provenance
+                    - limitations
+                    properties:
+                      product:
+                        const: scripture_passage_context
+                      evidence:
+                        type: array
+                        maxItems: 21
+                        minItems: 1
+                      reference:
+                        type: string
+                      provenance:
+                        type: object
+                      limitations:
+                        type: array
+                      source_labels:
+                        type: array
+                      requested_verse:
+                        type: integer
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/christian-scripture-keyword-search-v1:
+    post:
+      operationId: execute_christian_scripture_keyword_search_v1
+      summary: Christian Scripture Keyword Search
+      description: Literal concordance-style search over a pinned public-domain Bible corpus, with bounded source-labelled evidence.
+      tags:
+      - FAITH & THEOLOGY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.001000'
+        protocols:
+        - x402: {}
+        paymentOffers:
+        - intent: exact
+          limits:
+            per_call_atomic: 1000
+          network: base
+          currency: USDC
+          protocol: x402
+          provider: configured_facilitator
+          availability: live
+          unit_amount_atomic: 1000
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  properties:
+                    limit:
+                      type: integer
+                      default: 10
+                      maximum: 20
+                      minimum: 1
+                    query:
+                      type: string
+                      pattern: ^[A-Za-z][A-Za-z '’-]{1,39}$
+                      maxLength: 40
+                      minLength: 2
+                    source_id:
+                      enum:
+                      - bsb
+                      - web
+                      type: string
+                      default: bsb
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 1
+                    - type: field_changed
+                      field: $.product
+                      value: scripture_keyword_search
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.runtime_outbound_network_used
+                      value: false
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: hope
+                source_id: bsb
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 1
+                - type: field_changed
+                  field: $.product
+                  value: scripture_keyword_search
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.runtime_outbound_network_used
+                  value: false
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - product
+                    - query
+                    - total
+                    - evidence
+                    - source_labels
+                    - provenance
+                    - limitations
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                        maximum: 20
+                        minimum: 0
+                      product:
+                        const: scripture_keyword_search
+                      evidence:
+                        type: array
+                        maxItems: 20
+                        minItems: 1
+                      provenance:
+                        type: object
+                      limitations:
+                        type: array
+                      source_labels:
+                        type: array
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/christian-scripture-reading-plan-v1:
+    post:
+      operationId: execute_christian_scripture_reading_plan_v1
+      summary: Christian Scripture Reading Plan
+      description: Retrieve one bounded day from a deterministic seven-day gospel, psalm-prayer, or practical-wisdom reading plan using source-labelled public-domain Bible text.
+      tags:
+      - FAITH & THEOLOGY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.005000'
+        protocols:
+        - x402: {}
+        paymentOffers:
+        - intent: exact
+          limits:
+            per_call_atomic: 5000
+          network: base
+          currency: USDC
+          protocol: x402
+          provider: configured_facilitator
+          availability: live
+          unit_amount_atomic: 5000
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - plan
+                  - day
+                  properties:
+                    day:
+                      type: integer
+                      maximum: 7
+                      minimum: 1
+                    plan:
+                      enum:
+                      - gospel-foundations
+                      - psalms-for-prayer
+                      - wisdom-practice
+                      type: string
+                    source_id:
+                      enum:
+                      - bsb
+                      - web
+                      type: string
+                      default: bsb
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 1
+                    - type: field_changed
+                      field: $.product
+                      value: scripture_reading_plan
+                      operator: eq
+                    - type: field_changed
+                      field: $.total_days
+                      value: 7
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.runtime_outbound_network_used
+                      value: false
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                day: 1
+                plan: gospel-foundations
+                source_id: bsb
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 1
+                - type: field_changed
+                  field: $.product
+                  value: scripture_reading_plan
+                  operator: eq
+                - type: field_changed
+                  field: $.total_days
+                  value: 7
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.runtime_outbound_network_used
+                  value: false
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - product
+                    - plan
+                    - day
+                    - total_days
+                    - reference
+                    - evidence
+                    - source_labels
+                    - service_boundary
+                    - reflection_prompts
+                    - provenance
+                    - limitations
+                    properties:
+                      day:
+                        type: integer
+                      plan:
+                        type: string
+                      product:
+                        type: string
+                      evidence:
+                        type: array
+                        maxItems: 14
+                        minItems: 1
+                      reference:
+                        type: string
+                      provenance:
+                        type: object
+                        required:
+                        - corpus_version
+                        - content_hash
+                        - retrieved_at
+                        - runtime_outbound_network_used
+                        - sources
+                        properties:
+                          sources:
+                            type: array
+                          content_hash:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          retrieved_at:
+                            type: string
+                          corpus_version:
+                            type: string
+                          runtime_outbound_network_used:
+                            type: boolean
+                      total_days:
+                        type: integer
+                      limitations:
+                        type: array
+                      source_labels:
+                        type: array
+                        items:
+                          type: object
+                      service_boundary:
+                        type: string
+                      reflection_prompts:
+                        type: array
+                        maxItems: 4
+                        minItems: 1
+                    additionalProperties: false
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/christian-topic-scripture-guide-v1:
+    post:
+      operationId: execute_christian_topic_scripture_guide_v1
+      summary: Christian Topic Scripture Guide
+      description: Return a bounded, source-labelled set of public-domain Bible passages and neutral reflection prompts for one of six predefined topics.
+      tags:
+      - FAITH & THEOLOGY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.005000'
+        protocols:
+        - x402: {}
+        paymentOffers:
+        - intent: exact
+          limits:
+            per_call_atomic: 5000
+          network: base
+          currency: USDC
+          protocol: x402
+          provider: configured_facilitator
+          availability: live
+          unit_amount_atomic: 5000
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - topic
+                  properties:
+                    topic:
+                      enum:
+                      - anxiety
+                      - hope
+                      - forgiveness
+                      - wisdom
+                      - grief
+                      - justice
+                      type: string
+                    source_id:
+                      enum:
+                      - bsb
+                      - web
+                      type: string
+                      default: bsb
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 2
+                    - type: field_changed
+                      field: $.product
+                      value: topic_scripture_guide
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.runtime_outbound_network_used
+                      value: false
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                topic: hope
+                source_id: bsb
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 2
+                - type: field_changed
+                  field: $.product
+                  value: topic_scripture_guide
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.runtime_outbound_network_used
+                  value: false
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - product
+                    - topic
+                    - evidence
+                    - references
+                    - source_labels
+                    - service_boundary
+                    - reflection_prompts
+                    - provenance
+                    - limitations
+                    properties:
+                      topic:
+                        type: string
+                      product:
+                        type: string
+                      evidence:
+                        type: array
+                        maxItems: 4
+                        minItems: 2
+                      provenance:
+                        type: object
+                        required:
+                        - corpus_version
+                        - content_hash
+                        - retrieved_at
+                        - runtime_outbound_network_used
+                        - sources
+                        properties:
+                          sources:
+                            type: array
+                          content_hash:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          retrieved_at:
+                            type: string
+                          corpus_version:
+                            type: string
+                          runtime_outbound_network_used:
+                            type: boolean
+                      references:
+                        type: array
+                        items:
+                          type: string
+                      limitations:
+                        type: array
+                      source_labels:
+                        type: array
+                        items:
+                          type: object
+                      service_boundary:
+                        type: string
+                      reflection_prompts:
+                        type: array
+                        maxItems: 4
+                        minItems: 1
+                    additionalProperties: false
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/christian-scripture-lookup-v1:
+    post:
+      operationId: execute_christian_scripture_lookup_v1
+      summary: Christian Scripture Lookup
+      description: Retrieve a bounded passage from the public-domain Berean Standard Bible or World English Bible with exact source labels and provenance.
+      tags:
+      - FAITH & THEOLOGY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.001000'
+        protocols:
+        - x402: {}
+        paymentOffers:
+        - intent: exact
+          limits:
+            per_call_atomic: 1000
+          network: base
+          currency: USDC
+          protocol: x402
+          provider: configured_facilitator
+          availability: live
+          unit_amount_atomic: 1000
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - source_id
+                  - book_id
+                  - chapter
+                  - verse_start
+                  - verse_end
+                  properties:
+                    book_id:
+                      type: string
+                      maxLength: 24
+                      minLength: 2
+                    chapter:
+                      type: integer
+                      maximum: 150
+                      minimum: 1
+                    source_id:
+                      enum:
+                      - bsb
+                      - web
+                      type: string
+                    verse_end:
+                      type: integer
+                      maximum: 176
+                      minimum: 1
+                    verse_start:
+                      type: integer
+                      maximum: 176
+                      minimum: 1
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.runtime_outbound_network_used
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.product
+                      value: scripture_lookup
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                book_id: JHN
+                chapter: 3
+                source_id: bsb
+                verse_end: 16
+                verse_start: 16
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.runtime_outbound_network_used
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.product
+                  value: scripture_lookup
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - product
+                    - evidence
+                    - source_labels
+                    - reference
+                    - source
+                    - provenance
+                    - limitations
+                    properties:
+                      source:
+                        type: object
+                      product:
+                        type: string
+                      evidence:
+                        type: array
+                        maxItems: 100
+                        minItems: 1
+                      reference:
+                        type: string
+                      provenance:
+                        type: object
+                        required:
+                        - corpus_version
+                        - content_hash
+                        - retrieved_at
+                        - runtime_outbound_network_used
+                        - sources
+                        properties:
+                          sources:
+                            type: array
+                          content_hash:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          retrieved_at:
+                            type: string
+                          corpus_version:
+                            type: string
+                          runtime_outbound_network_used:
+                            type: boolean
+                      limitations:
+                        type: array
+                      source_labels:
+                        type: array
+                        items:
+                          type: object
+                    additionalProperties: false
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/christian-salvation-guide-v1:
+    post:
+      operationId: execute_christian_salvation_guide_v1
+      summary: Scripture-Grounded Salvation Guide
+      description: Return a deterministic set of source-labelled passages and reflection steps about salvation. The service neither confers nor certifies salvation.
+      tags:
+      - FAITH & THEOLOGY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.100000'
+        protocols:
+        - x402: {}
+        paymentOffers:
+        - intent: exact
+          limits:
+            per_call_atomic: 100000
+          network: base
+          currency: USDC
+          protocol: x402
+          provider: configured_facilitator
+          availability: live
+          unit_amount_atomic: 100000
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  properties:
+                    source_id:
+                      enum:
+                      - bsb
+                      - web
+                      type: string
+                      default: bsb
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.runtime_outbound_network_used
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.product
+                      value: salvation_guide
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                source_id: bsb
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.runtime_outbound_network_used
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.product
+                  value: salvation_guide
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - product
+                    - evidence
+                    - provenance
+                    - limitations
+                    properties:
+                      product:
+                        type: string
+                      evidence:
+                        type: array
+                        maxItems: 100
+                        minItems: 1
+                      provenance:
+                        type: object
+                        required:
+                        - corpus_version
+                        - content_hash
+                        - retrieved_at
+                        - runtime_outbound_network_used
+                        - sources
+                        properties:
+                          sources:
+                            type: array
+                          content_hash:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          retrieved_at:
+                            type: string
+                          corpus_version:
+                            type: string
+                          runtime_outbound_network_used:
+                            type: boolean
+                      limitations:
+                        type: array
+                    additionalProperties: true
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/christian-passage-compare-v1:
+    post:
+      operationId: execute_christian_passage_compare_v1
+      summary: Christian Passage Comparison
+      description: Compare a bounded passage in the public-domain BSB and WEB without blending or interpreting the source texts.
+      tags:
+      - FAITH & THEOLOGY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.003000'
+        protocols:
+        - x402: {}
+        paymentOffers:
+        - intent: exact
+          limits:
+            per_call_atomic: 3000
+          network: base
+          currency: USDC
+          protocol: x402
+          provider: configured_facilitator
+          availability: live
+          unit_amount_atomic: 3000
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - book_id
+                  - chapter
+                  - verse_start
+                  - verse_end
+                  properties:
+                    book_id:
+                      type: string
+                      maxLength: 24
+                      minLength: 2
+                    chapter:
+                      type: integer
+                      maximum: 150
+                      minimum: 1
+                    verse_end:
+                      type: integer
+                      maximum: 176
+                      minimum: 1
+                    verse_start:
+                      type: integer
+                      maximum: 176
+                      minimum: 1
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.runtime_outbound_network_used
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.product
+                      value: passage_compare
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                book_id: GEN
+                chapter: 1
+                verse_end: 3
+                verse_start: 1
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.runtime_outbound_network_used
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.product
+                  value: passage_compare
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - product
+                    - evidence
+                    - source_labels
+                    - reference
+                    - translations
+                    - provenance
+                    - limitations
+                    properties:
+                      product:
+                        type: string
+                      evidence:
+                        type: array
+                        maxItems: 100
+                        minItems: 1
+                      reference:
+                        type: string
+                      provenance:
+                        type: object
+                        required:
+                        - corpus_version
+                        - content_hash
+                        - retrieved_at
+                        - runtime_outbound_network_used
+                        - sources
+                        properties:
+                          sources:
+                            type: array
+                          content_hash:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          retrieved_at:
+                            type: string
+                          corpus_version:
+                            type: string
+                          runtime_outbound_network_used:
+                            type: boolean
+                      limitations:
+                        type: array
+                      translations:
+                        type: array
+                        items:
+                          type: object
+                      source_labels:
+                        type: array
+                        items:
+                          type: object
+                    additionalProperties: false
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/christian-devotional-blessing-v1:
+    post:
+      operationId: execute_christian_devotional_blessing_v1
+      summary: Scripture-Grounded Devotional Blessing
+      description: Return a deterministic source-labelled devotional blessing for reflection. Payment buys the structured service, not divine favour or a sacrament.
+      tags:
+      - FAITH & THEOLOGY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.010000'
+        protocols:
+        - x402: {}
+        paymentOffers:
+        - intent: exact
+          limits:
+            per_call_atomic: 10000
+          network: base
+          currency: USDC
+          protocol: x402
+          provider: configured_facilitator
+          availability: live
+          unit_amount_atomic: 10000
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  properties:
+                    theme:
+                      enum:
+                      - peace
+                      - courage
+                      - grief
+                      - gratitude
+                      type: string
+                      default: peace
+                    source_id:
+                      enum:
+                      - bsb
+                      - web
+                      type: string
+                      default: bsb
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.runtime_outbound_network_used
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.product
+                      value: devotional_blessing
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                theme: peace
+                source_id: bsb
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.runtime_outbound_network_used
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.product
+                  value: devotional_blessing
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - product
+                    - evidence
+                    - provenance
+                    - limitations
+                    properties:
+                      product:
+                        type: string
+                      evidence:
+                        type: array
+                        maxItems: 100
+                        minItems: 1
+                      provenance:
+                        type: object
+                        required:
+                        - corpus_version
+                        - content_hash
+                        - retrieved_at
+                        - runtime_outbound_network_used
+                        - sources
+                        properties:
+                          sources:
+                            type: array
+                          content_hash:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          retrieved_at:
+                            type: string
+                          corpus_version:
+                            type: string
+                          runtime_outbound_network_used:
+                            type: boolean
+                      limitations:
+                        type: array
+                    additionalProperties: true
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/christian-cross-references-v1:
+    post:
+      operationId: execute_christian_cross_references_v1
+      summary: Christian Cross References
+      description: Return bounded ranked OpenBible.info cross-reference identifiers with displayed text resolved only from BSB or WEB.
+      tags:
+      - FAITH & THEOLOGY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.005000'
+        protocols:
+        - x402: {}
+        paymentOffers:
+        - intent: exact
+          limits:
+            per_call_atomic: 5000
+          network: base
+          currency: USDC
+          protocol: x402
+          provider: configured_facilitator
+          availability: live
+          unit_amount_atomic: 5000
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - source_id
+                  - book_id
+                  - chapter
+                  - verse
+                  properties:
+                    limit:
+                      type: integer
+                      default: 10
+                      maximum: 25
+                      minimum: 1
+                    verse:
+                      type: integer
+                      maximum: 176
+                      minimum: 1
+                    book_id:
+                      type: string
+                      maxLength: 24
+                      minLength: 2
+                    chapter:
+                      type: integer
+                      maximum: 150
+                      minimum: 1
+                    source_id:
+                      enum:
+                      - bsb
+                      - web
+                      type: string
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.runtime_outbound_network_used
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.product
+                      value: cross_references
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                verse: 1
+                book_id: GEN
+                chapter: 1
+                source_id: web
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.runtime_outbound_network_used
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.product
+                  value: cross_references
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - product
+                    - evidence
+                    - source_labels
+                    - reference
+                    - source
+                    - results
+                    - total
+                    - provenance
+                    - limitations
+                    properties:
+                      total:
+                        type: integer
+                      source:
+                        type: object
+                      product:
+                        type: string
+                      results:
+                        type: array
+                        items:
+                          type: object
+                      evidence:
+                        type: array
+                        maxItems: 100
+                        minItems: 1
+                      reference:
+                        type: string
+                      provenance:
+                        type: object
+                        required:
+                        - corpus_version
+                        - content_hash
+                        - retrieved_at
+                        - runtime_outbound_network_used
+                        - sources
+                        properties:
+                          sources:
+                            type: array
+                          content_hash:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          retrieved_at:
+                            type: string
+                          corpus_version:
+                            type: string
+                          runtime_outbound_network_used:
+                            type: boolean
+                      limitations:
+                        type: array
+                      source_labels:
+                        type: array
+                        items:
+                          type: object
+                    additionalProperties: false
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/christian-confession-reflection-v1:
+    post:
+      operationId: execute_christian_confession_reflection_v1
+      summary: Private Confession Reflection
+      description: Return a short scripture-grounded private reflection aid. The endpoint accepts no confession narrative or identity information and provides no absolution.
+      tags:
+      - FAITH & THEOLOGY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.010000'
+        protocols:
+        - x402: {}
+        paymentOffers:
+        - intent: exact
+          limits:
+            per_call_atomic: 10000
+          network: base
+          currency: USDC
+          protocol: x402
+          provider: configured_facilitator
+          availability: live
+          unit_amount_atomic: 10000
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  properties:
+                    source_id:
+                      enum:
+                      - bsb
+                      - web
+                      type: string
+                      default: bsb
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.runtime_outbound_network_used
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.product
+                      value: confession_reflection
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                source_id: bsb
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.runtime_outbound_network_used
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.product
+                  value: confession_reflection
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - product
+                    - evidence
+                    - provenance
+                    - limitations
+                    properties:
+                      product:
+                        type: string
+                      evidence:
+                        type: array
+                        maxItems: 100
+                        minItems: 1
+                      provenance:
+                        type: object
+                        required:
+                        - corpus_version
+                        - content_hash
+                        - retrieved_at
+                        - runtime_outbound_network_used
+                        - sources
+                        properties:
+                          sources:
+                            type: array
+                          content_hash:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          retrieved_at:
+                            type: string
+                          corpus_version:
+                            type: string
+                          runtime_outbound_network_used:
+                            type: boolean
+                      limitations:
+                        type: array
+                    additionalProperties: true
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/christian-confession-guided-v1:
+    post:
+      operationId: execute_christian_confession_guided_v1
+      summary: Extended Guided Confession Reflection
+      description: Return an extended scripture-grounded examination and repair-oriented reflection. It accepts no confession narrative or identity information and provides no absolution.
+      tags:
+      - FAITH & THEOLOGY
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.050000'
+        protocols:
+        - x402: {}
+        paymentOffers:
+        - intent: exact
+          limits:
+            per_call_atomic: 50000
+          network: base
+          currency: USDC
+          protocol: x402
+          provider: configured_facilitator
+          availability: live
+          unit_amount_atomic: 50000
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  properties:
+                    source_id:
+                      enum:
+                      - bsb
+                      - web
+                      type: string
+                      default: bsb
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.runtime_outbound_network_used
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.product
+                      value: confession_guided
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                source_id: bsb
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.runtime_outbound_network_used
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.product
+                  value: confession_guided
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - product
+                    - evidence
+                    - provenance
+                    - limitations
+                    properties:
+                      product:
+                        type: string
+                      evidence:
+                        type: array
+                        maxItems: 100
+                        minItems: 1
+                      provenance:
+                        type: object
+                        required:
+                        - corpus_version
+                        - content_hash
+                        - retrieved_at
+                        - runtime_outbound_network_used
+                        - sources
+                        properties:
+                          sources:
+                            type: array
+                          content_hash:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          retrieved_at:
+                            type: string
+                          corpus_version:
+                            type: string
+                          runtime_outbound_network_used:
+                            type: boolean
+                      limitations:
+                        type: array
+                    additionalProperties: true
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

@@ -1,0 +1,154 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services Provider API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: Provider
+paths:
+  /api/provider/whoami:
+    get:
+      summary: Provider Whoami
+      operationId: provider_whoami_api_provider_whoami_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Provider Whoami Api Provider Whoami Get
+      tags:
+      - Provider
+  /api/provider/candidates:
+    post:
+      summary: Submit Provider Candidate
+      operationId: submit_provider_candidate_api_provider_candidates_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateSubmission'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Submit Provider Candidate Api Provider Candidates Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Provider
+  /api/provider/candidates/{submission_id}:
+    get:
+      summary: Get Provider Candidate Status
+      operationId: get_provider_candidate_status_api_provider_candidates__submission_id__get
+      parameters:
+      - name: submission_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Submission Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Provider Candidate Status Api Provider Candidates  Submission Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Provider
+components:
+  schemas:
+    CandidateSubmission:
+      properties:
+        capability_id:
+          type: string
+          title: Capability Id
+        price_sats:
+          type: integer
+          title: Price Sats
+        price_usdc_atomic:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Price Usdc Atomic
+        input_schema:
+          additionalProperties: true
+          type: object
+          title: Input Schema
+        output_schema:
+          additionalProperties: true
+          type: object
+          title: Output Schema
+        sample_predicate:
+          additionalProperties: true
+          type: object
+          title: Sample Predicate
+        backend_url:
+          type: string
+          title: Backend Url
+      additionalProperties: false
+      type: object
+      required:
+      - capability_id
+      - price_sats
+      - input_schema
+      - output_schema
+      - sample_predicate
+      - backend_url
+      title: CandidateSubmission
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

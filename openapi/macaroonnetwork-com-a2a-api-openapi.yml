@@ -1,0 +1,48 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services A2a API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: A2a
+paths:
+  /a2a:
+    post:
+      summary: A2A Jsonrpc
+      description: 'A2A JSON-RPC 2.0 endpoint.
+
+
+        Always HTTP 200: JSON-RPC carries failure in the `error` member, so
+
+        returning an HTTP error status for a well-formed call that the protocol
+
+        already has a code for would put the failure in two places and make
+
+        conformant clients disagree with us about what happened.'
+      operationId: a2a_jsonrpc_a2a_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      tags:
+      - A2a
+  /a2a/health:
+    get:
+      summary: A2A Health
+      description: Read-only liveness response for A2A monitors; it performs no work.
+      operationId: a2a_health_a2a_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response A2A Health A2A Health Get
+      tags:
+      - A2a

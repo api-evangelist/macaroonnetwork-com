@@ -1,0 +1,1289 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services RESEARCH DATA API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: RESEARCH DATA
+paths:
+  /execute/weathernext-point-forecast-v1:
+    post:
+      operationId: execute_weathernext_point_forecast_v1
+      summary: WeatherNext Point Forecast
+      description: Point-location weather forecast/reanalysis lookup from Google DeepMind's WeatherNext model via Earth Engine. Every request is bounded to data at least 1 hour old -- the exact license boundary at which WeatherNext data becomes CC BY 4.0 and commercially reusable. This listing never serves data still under the real-time Terms of Use, which explicitly prohibits commercial resale.
+      tags:
+      - RESEARCH DATA
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.005000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - latitude
+                  - longitude
+                  - timestamp
+                  properties:
+                    latitude:
+                      type: number
+                      maximum: 90
+                      minimum: -90
+                    longitude:
+                      type: number
+                      maximum: 180
+                      minimum: -180
+                    timestamp:
+                      type: string
+                      description: ISO 8601 UTC timestamp; must resolve to at least 1 hour before the request is made.
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.license
+                      value: CC-BY-4.0
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.live_data
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.outbound_network_used
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.data_age_hours
+                      value: 1
+                      operator: gte
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.source
+                      value: Google DeepMind WeatherNext (Earth Engine)
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                latitude: 35.6762
+                longitude: 139.6503
+                timestamp: '2026-01-15T12:00:00Z'
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.license
+                  value: CC-BY-4.0
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.live_data
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.outbound_network_used
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.data_age_hours
+                  value: 1
+                  operator: gte
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.source
+                  value: Google DeepMind WeatherNext (Earth Engine)
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - latitude
+                    - longitude
+                    - timestamp
+                    - records
+                    - provenance
+                    properties:
+                      records:
+                        type: array
+                      latitude:
+                        type: number
+                      longitude:
+                        type: number
+                      timestamp:
+                        type: string
+                      provenance:
+                        type: object
+                        required:
+                        - source
+                        - source_collection
+                        - retrieved_at
+                        - content_hash
+                        - metadata_only
+                        - live_data
+                        - outbound_network_used
+                        - license
+                        - data_age_hours
+                        - truncated
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/property-price-search-v1:
+    post:
+      operationId: execute_property_price_search_v1
+      summary: UK Property Price Search
+      description: Search recent UK property sale prices from HM Land Registry -- property type, price, town, district, and county. Published under the Open Government Licence v3.0. Address-line fields (postcode, street, house name/number) are deliberately excluded, since Land Registry's own licensing note flags those as carrying a separate Royal Mail restriction beyond the OGL grant on the transaction data itself.
+      tags:
+      - RESEARCH DATA
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  - source_ids
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Property type and/or location, for example 'detached london' or 'flat manchester'.
+                    source_ids:
+                      type: array
+                      const:
+                      - land-registry
+                      description: Fixed source filter; send exactly ['land-registry'].
+                    asset_types:
+                      type: array
+                      const:
+                      - price
+                      description: Fixed product filter; send exactly ['price'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: detached london
+                source_ids:
+                - land-registry
+                asset_types:
+                - price
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/economic-indicator-search-v1:
+    post:
+      operationId: execute_economic_indicator_search_v1
+      summary: World Bank Economic Indicator Search
+      description: Search macroeconomic indicator values (GDP, inflation, unemployment, population) across eight major economies and multiple recent years. Published under CC BY 4.0, explicit commercial reuse permitted.
+      tags:
+      - RESEARCH DATA
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  - source_ids
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Indicator and/or country, for example 'GDP United Kingdom' or 'inflation Brazil'.
+                    source_ids:
+                      type: array
+                      const:
+                      - world-bank
+                      description: Fixed source filter; send exactly ['world-bank'].
+                    asset_types:
+                      type: array
+                      const:
+                      - price
+                      description: Fixed product filter; send exactly ['price'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: GDP United Kingdom
+                source_ids:
+                - world-bank
+                asset_types:
+                - price
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/nih-reporter-grant-search-v1:
+    post:
+      operationId: execute_nih_reporter_grant_search_v1
+      summary: NIH Research Grant Search
+      description: Search a bounded NIH RePORTER snapshot for federally funded biomedical research grants -- title, funded organization, administering NIH institute, award identifiers, and dates -- across every disease area and biomedical discipline, not one narrow field. Metadata only.
+      tags:
+      - RESEARCH DATA
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  - source_ids
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Biomedical research topic, for example 'diabetes' or 'cardiovascular disease'.
+                    source_ids:
+                      type: array
+                      const:
+                      - nih-reporter
+                      description: Fixed source filter; send exactly ['nih-reporter'].
+                    asset_types:
+                      type: array
+                      const:
+                      - grant
+                      description: Fixed product filter; send exactly ['grant'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: diabetes
+                source_ids:
+                - nih-reporter
+                asset_types:
+                - grant
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/commercial-use-licence-check-v1:
+    post:
+      operationId: execute_commercial_use_licence_check_v1
+      summary: Commercial Use Licence Check
+      description: Check a specific dataset, paper, repository, or model URL against the indexed open-science corpus and receive a conservative, source-linked commercial-use and redistribution status. Never infers permission from an absent or ambiguous licence -- returns unknown rather than guessing.
+      tags:
+      - RESEARCH DATA
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.003000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - url
+                  properties:
+                    url:
+                      type: string
+                      format: uri
+                      description: URL or DOI link of the dataset, paper, repository, or model to check.
+                    asset_type:
+                      enum:
+                      - dataset
+                      - paper
+                      - repository
+                      - model
+                      - government_record
+                      - auto
+                      type: string
+                      default: auto
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.evidence
+                      value: 1
+                    - type: field_changed
+                      field: $.limitation
+                      value: Evidence summary only; not legal advice or a formal compliance determination.
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                url: https://doi.org/10.5281/zenodo.21540550
+                asset_type: auto
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.evidence
+                  value: 1
+                - type: field_changed
+                  field: $.limitation
+                  value: Evidence summary only; not legal advice or a formal compliance determination.
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - commercial_use
+                    - redistribution
+                    - licence
+                    - attribution_required
+                    - source_url
+                    - evidence
+                    - risk
+                    - retrieved_at
+                    - content_hash
+                    - limitation
+                    properties:
+                      risk:
+                        enum:
+                        - low
+                        - medium
+                        - high
+                        - unknown
+                        type: string
+                      licence:
+                        type: string
+                      evidence:
+                        type: array
+                        items:
+                          type: object
+                        minItems: 1
+                      limitation:
+                        type: string
+                        const: Evidence summary only; not legal advice or a formal compliance determination.
+                      source_url:
+                        type: string
+                        format: uri
+                      content_hash:
+                        type: string
+                        pattern: ^sha256:[a-f0-9]{64}$
+                      retrieved_at:
+                        type: string
+                        format: date-time
+                      commercial_use:
+                        enum:
+                        - allowed
+                        - restricted
+                        - unknown
+                        type: string
+                      redistribution:
+                        enum:
+                        - allowed
+                        - restricted
+                        - unknown
+                        type: string
+                      attribution_required:
+                        type:
+                        - boolean
+                        - 'null'
+                    additionalProperties: false
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/crossref-research-paper-metadata-v1:
+    post:
+      operationId: execute_crossref_research_paper_metadata_v1
+      summary: Crossref DOI Metadata Search
+      description: Search a bounded Crossref snapshot for research-paper DOI metadata with stable DOI links, source provenance and conservative linked-work rights fields. Returns metadata only and excludes abstracts and full text.
+      tags:
+      - RESEARCH DATA
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  - source_ids
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Research topic or DOI metadata term, for example 'physics informed neural network'.
+                    source_ids:
+                      type: array
+                      const:
+                      - crossref
+                      description: Fixed source filter; send exactly ['crossref'].
+                    asset_types:
+                      type: array
+                      const:
+                      - paper
+                      description: Fixed product filter; send exactly ['paper'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: physics informed neural network
+                source_ids:
+                - crossref
+                asset_types:
+                - paper
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/usgs-earthquake-event-search-v1:
+    post:
+      operationId: execute_usgs_earthquake_event_search_v1
+      summary: Recent Earthquake Event Search
+      description: Search a bounded, normalized snapshot of significant recent earthquake events with magnitude, time, depth, location, stable USGS links and provenance. Event-level reuse rights remain unknown because ComCat includes contributing seismic networks.
+      tags:
+      - RESEARCH DATA
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  properties:
+                    limit:
+                      type: integer
+                      default: 10
+                      maximum: 25
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Location or earthquake search term, for example 'earthquake' or 'Japan'.
+                    asset_types:
+                      type: array
+                      const:
+                      - event
+                      description: Fixed product filter; send exactly ['event'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 10
+                query: earthquake
+                asset_types:
+                - event
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/polymathica-scientific-dataset-search-v1:
+    post:
+      operationId: execute_polymathica_scientific_dataset_search_v1
+      summary: Scientific Dataset Search
+      description: Find source-linked scientific datasets by topic. Returns structured metadata pointers, declared licence fields, provenance and freshness without redistributing dataset files.
+      tags:
+      - RESEARCH DATA
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  properties:
+                    limit:
+                      type: integer
+                      default: 10
+                      maximum: 50
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Dataset topic, for example 'computational fluid dynamics'.
+                    asset_types:
+                      type: array
+                      const:
+                      - dataset
+                      description: Fixed product filter; send exactly ['dataset'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 10
+                query: PINN benchmark
+                asset_types:
+                - dataset
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/polymathica-research-paper-search-v1:
+    post:
+      operationId: execute_polymathica_research_paper_search_v1
+      summary: Research Paper Search
+      description: Find source-linked scientific papers by topic. Returns metadata pointers, authors, dates, licence evidence when supplied by the source, and corpus provenance; it does not sell paper text or infer reuse rights.
+      tags:
+      - RESEARCH DATA
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.001000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  properties:
+                    limit:
+                      type: integer
+                      default: 10
+                      maximum: 50
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Paper topic, for example 'physics informed neural networks'.
+                    asset_types:
+                      type: array
+                      const:
+                      - paper
+                      description: Fixed product filter; send exactly ['paper'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 10
+                query: physics informed neural networks
+                asset_types:
+                - paper
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

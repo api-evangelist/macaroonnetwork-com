@@ -1,0 +1,623 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services PRODUCT DEVELOPMENT API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: PRODUCT DEVELOPMENT
+paths:
+  /execute/product-requirements-document-v2:
+    post:
+      operationId: execute_product_requirements_document_v2
+      summary: Deterministic Product Requirements Document
+      description: Generate a bounded implementation-facing product requirements document from a typed brief, with stable requirement identifiers, observable acceptance criteria, explicit unknowns, and unsupported claims kept out of factual requirements.
+      tags:
+      - PRODUCT DEVELOPMENT
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.010000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  if:
+                    properties:
+                      ai_capability:
+                        const: true
+                  else:
+                    not:
+                      required:
+                      - ai_validation_and_safety
+                  then:
+                    required:
+                    - ai_validation_and_safety
+                  type: object
+                  required:
+                  - product_name
+                  - problem
+                  - target_users
+                  - desired_outcomes
+                  - capabilities
+                  - constraints
+                  - non_goals
+                  - validation_steps
+                  - unknown_fields
+                  - unsupported_claims
+                  - ai_capability
+                  properties:
+                    problem:
+                      type: string
+                      pattern: ^[\s\S]*\S[\s\S]*$
+                      maxLength: 1000
+                      minLength: 1
+                    max_words:
+                      type: integer
+                      maximum: 1200
+                      minimum: 300
+                    non_goals:
+                      type: array
+                      items:
+                        type: string
+                        pattern: ^[\s\S]*\S[\s\S]*$
+                        maxLength: 300
+                        minLength: 1
+                      maxItems: 30
+                      minItems: 0
+                    constraints:
+                      type: array
+                      items:
+                        type: string
+                        pattern: ^[\s\S]*\S[\s\S]*$
+                        maxLength: 300
+                        minLength: 1
+                      maxItems: 40
+                      minItems: 0
+                    capabilities:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - kind
+                        - statement
+                        - acceptance
+                        properties:
+                          kind:
+                            enum:
+                            - functional
+                            - non_functional
+                            type: string
+                          statement:
+                            type: string
+                            pattern: ^[\s\S]*\S[\s\S]*$
+                            maxLength: 500
+                            minLength: 1
+                          acceptance:
+                            oneOf:
+                            - type: object
+                              required:
+                              - type
+                              - condition
+                              - metric
+                              - operator
+                              - target
+                              - unit
+                              properties:
+                                type:
+                                  const: metric
+                                unit:
+                                  type: string
+                                  pattern: ^[\s\S]*\S[\s\S]*$
+                                  maxLength: 80
+                                  minLength: 1
+                                metric:
+                                  type: string
+                                  pattern: ^[\s\S]*\S[\s\S]*$
+                                  maxLength: 200
+                                  minLength: 1
+                                target:
+                                  type: string
+                                  pattern: ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+                                operator:
+                                  enum:
+                                  - eq
+                                  - ne
+                                  - lt
+                                  - lte
+                                  - gt
+                                  - gte
+                                  type: string
+                                condition:
+                                  type: string
+                                  pattern: ^[\s\S]*\S[\s\S]*$
+                                  maxLength: 300
+                                  minLength: 1
+                              additionalProperties: false
+                            - type: object
+                              required:
+                              - type
+                              - condition
+                              - expected_behavior
+                              properties:
+                                type:
+                                  const: assertion
+                                condition:
+                                  type: string
+                                  pattern: ^[\s\S]*\S[\s\S]*$
+                                  maxLength: 300
+                                  minLength: 1
+                                expected_behavior:
+                                  type: string
+                                  pattern: ^[\s\S]*\S[\s\S]*$
+                                  maxLength: 500
+                                  minLength: 1
+                              additionalProperties: false
+                        additionalProperties: false
+                      maxItems: 40
+                      minItems: 1
+                    product_name:
+                      type: string
+                      pattern: ^[\s\S]*\S[\s\S]*$
+                      maxLength: 120
+                      minLength: 1
+                    target_users:
+                      type: array
+                      items:
+                        type: string
+                        pattern: ^[\s\S]*\S[\s\S]*$
+                        maxLength: 200
+                        minLength: 1
+                      maxItems: 20
+                      minItems: 1
+                    ai_capability:
+                      type: boolean
+                    unknown_fields:
+                      type: array
+                      items:
+                        type: string
+                        pattern: ^[\s\S]*\S[\s\S]*$
+                        maxLength: 300
+                        minLength: 1
+                      maxItems: 50
+                      minItems: 0
+                    desired_outcomes:
+                      type: array
+                      items:
+                        type: string
+                        pattern: ^[\s\S]*\S[\s\S]*$
+                        maxLength: 300
+                        minLength: 1
+                      maxItems: 20
+                      minItems: 1
+                    validation_steps:
+                      type: array
+                      items:
+                        type: string
+                        pattern: ^[\s\S]*\S[\s\S]*$
+                        maxLength: 500
+                        minLength: 1
+                      maxItems: 30
+                      minItems: 1
+                    unsupported_claims:
+                      type: array
+                      items:
+                        type: string
+                        pattern: ^[\s\S]*\S[\s\S]*$
+                        maxLength: 300
+                        minLength: 1
+                      maxItems: 50
+                      minItems: 0
+                    ai_validation_and_safety:
+                      type: object
+                      required:
+                      - evaluation_fixtures
+                      - target_metrics
+                      - unacceptable_behaviours
+                      - human_review
+                      - model_data_provenance
+                      - prompt_injection
+                      - privacy
+                      - cost
+                      - latency
+                      - fallback
+                      properties:
+                        cost:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          maxLength: 500
+                          minLength: 1
+                        latency:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          maxLength: 500
+                          minLength: 1
+                        privacy:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          maxLength: 500
+                          minLength: 1
+                        fallback:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          maxLength: 500
+                          minLength: 1
+                        human_review:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          maxLength: 500
+                          minLength: 1
+                        target_metrics:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          maxLength: 500
+                          minLength: 1
+                        prompt_injection:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          maxLength: 500
+                          minLength: 1
+                        evaluation_fixtures:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          maxLength: 500
+                          minLength: 1
+                        model_data_provenance:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          maxLength: 500
+                          minLength: 1
+                        unacceptable_behaviours:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          maxLength: 500
+                          minLength: 1
+                      additionalProperties: false
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.status
+                      value: generated
+                      operator: eq
+                    - type: field_changed
+                      field: $.validation.passed
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.validation.checks_failed
+                      value: 0
+                      operator: eq
+                    - type: count_gte
+                      field: $.requirements
+                      value: 1
+                    - type: not
+                      condition:
+                        type: field_changed
+                        field: $.prd_markdown
+                        value: ''
+                        operator: eq
+                    - type: field_changed
+                      field: $.safeguards.unsupported_claims_promoted
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.safeguards.tools_called
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.safeguards.network_sources_used
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.safeguards.input_persisted
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.safeguards.payment_or_registry_mutation
+                      value: false
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.model_id
+                      value: deterministic/no-model
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.generation_attempts
+                      value: 0
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                problem: Operations leads need reliable visibility into delayed jobs.
+                max_words: 800
+                non_goals:
+                - SMS alerts
+                constraints:
+                - EU data residency
+                capabilities:
+                - kind: functional
+                  statement: Send delayed-job alerts.
+                  acceptance:
+                    type: metric
+                    unit: seconds
+                    metric: alert delivery latency
+                    target: '60'
+                    operator: lte
+                    condition: a job has remained queued for 10 minutes
+                product_name: QueueGuard
+                target_users:
+                - operations leads
+                ai_capability: false
+                unknown_fields:
+                - budget
+                desired_outcomes:
+                - Detect delayed jobs consistently
+                validation_steps:
+                - Replay a versioned delayed-job fixture.
+                unsupported_claims:
+                - GDPR certified
+              predicate:
+                type: all
+                conditions:
+                - type: field_changed
+                  field: $.status
+                  value: generated
+                  operator: eq
+                - type: field_changed
+                  field: $.validation.passed
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.validation.checks_failed
+                  value: 0
+                  operator: eq
+                - type: count_gte
+                  field: $.requirements
+                  value: 1
+                - type: not
+                  condition:
+                    type: field_changed
+                    field: $.prd_markdown
+                    value: ''
+                    operator: eq
+                - type: field_changed
+                  field: $.safeguards.unsupported_claims_promoted
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.safeguards.tools_called
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.safeguards.network_sources_used
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.safeguards.input_persisted
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.safeguards.payment_or_registry_mutation
+                  value: false
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.model_id
+                  value: deterministic/no-model
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.generation_attempts
+                  value: 0
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    if:
+                      properties:
+                        status:
+                          const: generated
+                    else:
+                      properties:
+                        validation:
+                          properties:
+                            passed:
+                              const: false
+                            checks_failed:
+                              type: integer
+                              minimum: 1
+                        prd_markdown:
+                          const: ''
+                    then:
+                      properties:
+                        validation:
+                          properties:
+                            passed:
+                              const: true
+                            checks_failed:
+                              const: 0
+                        prd_markdown:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          minLength: 1
+                        requirements:
+                          type: array
+                          minItems: 1
+                    type: object
+                    required:
+                    - schema_version
+                    - status
+                    - prd_markdown
+                    - requirements
+                    - unknowns
+                    - validation
+                    - safeguards
+                    - provenance
+                    properties:
+                      status:
+                        enum:
+                        - generated
+                        - rejected
+                        type: string
+                      unknowns:
+                        type: array
+                        items:
+                          type: string
+                          pattern: ^[\s\S]*\S[\s\S]*$
+                          maxLength: 300
+                          minLength: 1
+                        maxItems: 50
+                        minItems: 0
+                      provenance:
+                        type: object
+                        required:
+                        - skill_sha256
+                        - model_id
+                        - input_sha256
+                        - output_sha256
+                        - generated_at
+                        - generation_attempts
+                        properties:
+                          model_id:
+                            type: string
+                            const: deterministic/no-model
+                          generated_at:
+                            type: string
+                            pattern: ^[\s\S]*\S[\s\S]*$
+                            maxLength: 100
+                            minLength: 1
+                          input_sha256:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          skill_sha256:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          output_sha256:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          generation_attempts:
+                            type: integer
+                            const: 0
+                        additionalProperties: false
+                      safeguards:
+                        type: object
+                        required:
+                        - unsupported_claims_promoted
+                        - tools_called
+                        - network_sources_used
+                        - input_persisted
+                        - payment_or_registry_mutation
+                        properties:
+                          tools_called:
+                            type: boolean
+                          input_persisted:
+                            type: boolean
+                          network_sources_used:
+                            type: boolean
+                          unsupported_claims_promoted:
+                            type: boolean
+                          payment_or_registry_mutation:
+                            type: boolean
+                        additionalProperties: false
+                      validation:
+                        type: object
+                        required:
+                        - passed
+                        - checks_passed
+                        - checks_failed
+                        - violations
+                        properties:
+                          passed:
+                            type: boolean
+                          violations:
+                            type: array
+                            items:
+                              type: string
+                              pattern: ^[\s\S]*\S[\s\S]*$
+                              maxLength: 500
+                              minLength: 1
+                            maxItems: 8
+                          checks_failed:
+                            type: integer
+                            maximum: 8
+                            minimum: 0
+                          checks_passed:
+                            type: integer
+                            maximum: 8
+                            minimum: 0
+                        additionalProperties: false
+                      prd_markdown:
+                        type: string
+                      requirements:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                          - id
+                          - kind
+                          - statement
+                          - acceptance_criterion
+                          properties:
+                            id:
+                              type: string
+                              pattern: ^(?:FR|NFR)-[0-9]{3}$
+                            kind:
+                              enum:
+                              - functional
+                              - non_functional
+                              type: string
+                            statement:
+                              type: string
+                              pattern: ^[\s\S]*\S[\s\S]*$
+                              maxLength: 500
+                              minLength: 1
+                            acceptance_criterion:
+                              type: string
+                              pattern: ^[\s\S]*\S[\s\S]*$
+                              minLength: 1
+                          additionalProperties: false
+                        maxItems: 40
+                      schema_version:
+                        type: integer
+                        const: 2
+                    additionalProperties: false
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

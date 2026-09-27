@@ -1,0 +1,1005 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services Public API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: Public
+paths:
+  /api/public/stats:
+    get:
+      summary: Public Marketplace Stats
+      description: 'Backs the homepage''s real "Independent Sales (24h)" stat card --
+
+        deliberately a minimal, public-safe shape (a count and a revenue
+
+        total), never the raw payment_reference/service_id rows
+
+        commercial_events.commercial_report()''s unrecognized_payments list
+
+        carries. Real, rolling 24h window -- never a hardcoded figure, per
+
+        this project''s own "counts are never invented" rule.'
+      operationId: public_marketplace_stats_api_public_stats_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicMarketplaceStatsResponse'
+      tags:
+      - Public
+  /api/public/taxonomy:
+    get:
+      summary: Public Catalog Taxonomy
+      description: Return Macaroon-owned canonical categories with mapped product counts.
+      operationId: public_catalog_taxonomy_api_public_taxonomy_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Public Catalog Taxonomy Api Public Taxonomy Get
+      tags:
+      - Public
+  /api/public/mcp-servers:
+    get:
+      summary: Public Mcp Servers
+      description: Return only MCP servers that are evidenced as live.
+      operationId: public_mcp_servers_api_public_mcp_servers_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Public Mcp Servers Api Public Mcp Servers Get
+      tags:
+      - Public
+  /api/public/sources:
+    get:
+      summary: Public Sources
+      description: Return reviewed public source records and explicit coverage limits.
+      operationId: public_sources_api_public_sources_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Public Sources Api Public Sources Get
+      tags:
+      - Public
+  /api/public/services:
+    get:
+      summary: Public Services
+      operationId: public_services_api_public_services_get
+      parameters:
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+          title: Category
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicServicesResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/services/search:
+    get:
+      summary: Public Service Search
+      operationId: public_service_search_api_public_services_search_get
+      parameters:
+      - name: query
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 200
+          title: Query
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+          title: Category
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 20
+          minimum: 1
+          default: 10
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicServicesResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/gpt/faith/scripture-lookup:
+    post:
+      summary: Public Gpt Faith Scripture Lookup
+      description: Return at most five exact, same-chapter verses from the pinned corpus.
+      operationId: public_gpt_faith_scripture_lookup_api_public_gpt_faith_scripture_lookup_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GPTScriptureLookupRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Public Gpt Faith Scripture Lookup Api Public Gpt Faith Scripture Lookup Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/gpt/faith/action:
+    post:
+      summary: Public Gpt Faith Action
+      description: Single Builder-compatible dispatcher with a server-fixed faith scope.
+      operationId: public_gpt_faith_action_api_public_gpt_faith_action_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - $ref: '#/components/schemas/GPTFaithScriptureActionRequest'
+              - $ref: '#/components/schemas/GPTFaithListActionRequest'
+              - $ref: '#/components/schemas/GPTFaithSearchActionRequest'
+              - $ref: '#/components/schemas/GPTFaithServiceActionRequest'
+              title: Body
+              discriminator:
+                propertyName: action
+                mapping:
+                  scripture_lookup: '#/components/schemas/GPTFaithScriptureActionRequest'
+                  list_services: '#/components/schemas/GPTFaithListActionRequest'
+                  search_services: '#/components/schemas/GPTFaithSearchActionRequest'
+                  service_detail: '#/components/schemas/GPTFaithServiceActionRequest'
+                  service_evidence: '#/components/schemas/GPTFaithServiceActionRequest'
+                  service_page: '#/components/schemas/GPTFaithServiceActionRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Public Gpt Faith Action Api Public Gpt Faith Action Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/gpt/faith/services/list:
+    post:
+      summary: Public Gpt Faith Services List
+      operationId: public_gpt_faith_services_list_api_public_gpt_faith_services_list_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Public Gpt Faith Services List Api Public Gpt Faith Services List Post
+      tags:
+      - Public
+  /api/public/gpt/faith/services/search:
+    post:
+      summary: Public Gpt Faith Services Search
+      operationId: public_gpt_faith_services_search_api_public_gpt_faith_services_search_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GPTFaithSearchRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Public Gpt Faith Services Search Api Public Gpt Faith Services Search Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/gpt/faith/services/detail:
+    post:
+      summary: Public Gpt Faith Service Detail Post
+      operationId: public_gpt_faith_service_detail_post_api_public_gpt_faith_services_detail_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GPTFaithServiceRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Public Gpt Faith Service Detail Post Api Public Gpt Faith Services Detail Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/gpt/faith/services/evidence:
+    post:
+      summary: Public Gpt Faith Service Evidence Post
+      operationId: public_gpt_faith_service_evidence_post_api_public_gpt_faith_services_evidence_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GPTFaithServiceRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Public Gpt Faith Service Evidence Post Api Public Gpt Faith Services Evidence Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/gpt/faith/services/page:
+    post:
+      summary: Public Gpt Faith Service Page Post
+      operationId: public_gpt_faith_service_page_post_api_public_gpt_faith_services_page_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GPTFaithServiceRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Public Gpt Faith Service Page Post Api Public Gpt Faith Services Page Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/services/{service_id}:
+    get:
+      summary: Public Service Detail
+      operationId: public_service_detail_api_public_services__service_id__get
+      parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Service Id
+        description: Substitute a concrete service id; do not send the literal {service_id} template.
+        example: sanctions-pep-screening-v1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicServiceDetail'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/gpt/faith/services/{service_id}:
+    get:
+      summary: Public Gpt Faith Service Detail
+      operationId: public_gpt_faith_service_detail_api_public_gpt_faith_services__service_id__get
+      parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Service Id
+        description: Substitute a concrete service id; do not send the literal {service_id} template.
+        example: sanctions-pep-screening-v1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicServiceDetail'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/services/{service_id}/evidence:
+    get:
+      summary: Public Service Evidence
+      operationId: public_service_evidence_api_public_services__service_id__evidence_get
+      parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Service Id
+        description: Substitute a concrete service id; do not send the literal {service_id} template.
+        example: sanctions-pep-screening-v1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Public Service Evidence Api Public Services  Service Id  Evidence Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/gpt/faith/services/{service_id}/evidence:
+    get:
+      summary: Public Gpt Faith Service Evidence
+      operationId: public_gpt_faith_service_evidence_api_public_gpt_faith_services__service_id__evidence_get
+      parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Service Id
+        description: Substitute a concrete service id; do not send the literal {service_id} template.
+        example: sanctions-pep-screening-v1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Public Gpt Faith Service Evidence Api Public Gpt Faith Services  Service Id  Evidence Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/services/{service_id}/page:
+    get:
+      summary: Public Service Page
+      operationId: public_service_page_api_public_services__service_id__page_get
+      parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Service Id
+        description: Substitute a concrete service id; do not send the literal {service_id} template.
+        example: sanctions-pep-screening-v1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Public Service Page Api Public Services  Service Id  Page Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+  /api/public/gpt/faith/services/{service_id}/page:
+    get:
+      summary: Public Gpt Faith Service Page
+      operationId: public_gpt_faith_service_page_api_public_gpt_faith_services__service_id__page_get
+      parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Service Id
+        description: Substitute a concrete service id; do not send the literal {service_id} template.
+        example: sanctions-pep-screening-v1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Public Gpt Faith Service Page Api Public Gpt Faith Services  Service Id  Page Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Public
+components:
+  schemas:
+    PublicServiceDetail:
+      properties:
+        service_id:
+          type: string
+          title: Service Id
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+        customer_outcome:
+          type: string
+          title: Customer Outcome
+        category:
+          type: string
+          title: Category
+        category_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category Id
+        mcp_server_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Mcp Server Id
+        source_ids:
+          items:
+            type: string
+          type: array
+          title: Source Ids
+        status:
+          type: string
+          title: Status
+        price:
+          additionalProperties: true
+          type: object
+          title: Price
+        trust_status:
+          type: string
+          title: Trust Status
+        service_url:
+          type: string
+          title: Service Url
+        external_checkout:
+          type: boolean
+          title: External Checkout
+          default: true
+        detail_url:
+          type: string
+          title: Detail Url
+        execute_url:
+          type: string
+          title: Execute Url
+        method:
+          type: string
+          title: Method
+        content_type:
+          type: string
+          title: Content Type
+        input_schema:
+          additionalProperties: true
+          type: object
+          title: Input Schema
+        output_schema:
+          additionalProperties: true
+          type: object
+          title: Output Schema
+        example_request:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Example Request
+        payment:
+          additionalProperties: true
+          type: object
+          title: Payment
+        payment_offers:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Payment Offers
+        provider:
+          type: string
+          title: Provider
+        inputs:
+          additionalProperties: true
+          type: object
+          title: Inputs
+        outputs:
+          additionalProperties: true
+          type: object
+          title: Outputs
+        predicate:
+          additionalProperties: true
+          type: object
+          title: Predicate
+        predicate_hash:
+          type: string
+          title: Predicate Hash
+        payment_options:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Payment Options
+        trust_evidence:
+          additionalProperties: true
+          type: object
+          title: Trust Evidence
+        external_listings:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: External Listings
+        limitations:
+          items:
+            type: string
+          type: array
+          title: Limitations
+      type: object
+      required:
+      - service_id
+      - name
+      - description
+      - customer_outcome
+      - category
+      - status
+      - price
+      - trust_status
+      - service_url
+      - detail_url
+      - execute_url
+      - method
+      - content_type
+      - input_schema
+      - output_schema
+      - payment
+      - provider
+      - inputs
+      - outputs
+      - predicate
+      - predicate_hash
+      - payment_options
+      - trust_evidence
+      - limitations
+      title: PublicServiceDetail
+    GPTFaithServiceActionRequest:
+      properties:
+        action:
+          type: string
+          enum:
+          - service_detail
+          - service_evidence
+          - service_page
+          title: Action
+        service_id:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: Service Id
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      - service_id
+      title: GPTFaithServiceActionRequest
+    GPTFaithScriptureActionRequest:
+      properties:
+        source_id:
+          type: string
+          enum:
+          - bsb
+          - web
+          title: Source Id
+        book_id:
+          type: string
+          maxLength: 24
+          minLength: 2
+          title: Book Id
+        chapter:
+          type: integer
+          maximum: 150.0
+          minimum: 1.0
+          title: Chapter
+        verse_start:
+          type: integer
+          maximum: 176.0
+          minimum: 1.0
+          title: Verse Start
+        verse_end:
+          type: integer
+          maximum: 176.0
+          minimum: 1.0
+          title: Verse End
+        action:
+          type: string
+          const: scripture_lookup
+          title: Action
+      additionalProperties: false
+      type: object
+      required:
+      - source_id
+      - book_id
+      - chapter
+      - verse_start
+      - verse_end
+      - action
+      title: GPTFaithScriptureActionRequest
+    GPTFaithSearchActionRequest:
+      properties:
+        action:
+          type: string
+          const: search_services
+          title: Action
+        query:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Query
+        limit:
+          type: integer
+          maximum: 20.0
+          minimum: 1.0
+          title: Limit
+          default: 10
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      - query
+      title: GPTFaithSearchActionRequest
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    GPTFaithServiceRequest:
+      properties:
+        service_id:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: Service Id
+      additionalProperties: false
+      type: object
+      required:
+      - service_id
+      title: GPTFaithServiceRequest
+    PublicServicesResponse:
+      properties:
+        services:
+          items:
+            $ref: '#/components/schemas/PublicServiceSummary'
+          type: array
+          title: Services
+      type: object
+      required:
+      - services
+      title: PublicServicesResponse
+    PublicServiceSummary:
+      properties:
+        service_id:
+          type: string
+          title: Service Id
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+        customer_outcome:
+          type: string
+          title: Customer Outcome
+        category:
+          type: string
+          title: Category
+        category_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category Id
+        mcp_server_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Mcp Server Id
+        source_ids:
+          items:
+            type: string
+          type: array
+          title: Source Ids
+        status:
+          type: string
+          title: Status
+        price:
+          additionalProperties: true
+          type: object
+          title: Price
+        trust_status:
+          type: string
+          title: Trust Status
+        service_url:
+          type: string
+          title: Service Url
+        external_checkout:
+          type: boolean
+          title: External Checkout
+          default: true
+        detail_url:
+          type: string
+          title: Detail Url
+        execute_url:
+          type: string
+          title: Execute Url
+        method:
+          type: string
+          title: Method
+        content_type:
+          type: string
+          title: Content Type
+        input_schema:
+          additionalProperties: true
+          type: object
+          title: Input Schema
+        output_schema:
+          additionalProperties: true
+          type: object
+          title: Output Schema
+        example_request:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Example Request
+        payment:
+          additionalProperties: true
+          type: object
+          title: Payment
+        payment_offers:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Payment Offers
+      type: object
+      required:
+      - service_id
+      - name
+      - description
+      - customer_outcome
+      - category
+      - status
+      - price
+      - trust_status
+      - service_url
+      - detail_url
+      - execute_url
+      - method
+      - content_type
+      - input_schema
+      - output_schema
+      - payment
+      title: PublicServiceSummary
+    PublicMarketplaceStatsResponse:
+      properties:
+        independent_sales_24h:
+          type: integer
+          title: Independent Sales 24H
+        independent_sales_24h_revenue_usdc_atomic:
+          type: integer
+          title: Independent Sales 24H Revenue Usdc Atomic
+      type: object
+      required:
+      - independent_sales_24h
+      - independent_sales_24h_revenue_usdc_atomic
+      title: PublicMarketplaceStatsResponse
+    GPTFaithSearchRequest:
+      properties:
+        query:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Query
+        limit:
+          type: integer
+          maximum: 20.0
+          minimum: 1.0
+          title: Limit
+          default: 10
+      additionalProperties: false
+      type: object
+      required:
+      - query
+      title: GPTFaithSearchRequest
+    GPTScriptureLookupRequest:
+      properties:
+        source_id:
+          type: string
+          enum:
+          - bsb
+          - web
+          title: Source Id
+        book_id:
+          type: string
+          maxLength: 24
+          minLength: 2
+          title: Book Id
+        chapter:
+          type: integer
+          maximum: 150.0
+          minimum: 1.0
+          title: Chapter
+        verse_start:
+          type: integer
+          maximum: 176.0
+          minimum: 1.0
+          title: Verse Start
+        verse_end:
+          type: integer
+          maximum: 176.0
+          minimum: 1.0
+          title: Verse End
+      additionalProperties: false
+      type: object
+      required:
+      - source_id
+      - book_id
+      - chapter
+      - verse_start
+      - verse_end
+      title: GPTScriptureLookupRequest
+      description: Small, literal corpus lookup contract for the public faith GPT.
+    GPTFaithListActionRequest:
+      properties:
+        action:
+          type: string
+          const: list_services
+          title: Action
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      title: GPTFaithListActionRequest

@@ -1,0 +1,455 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services .well Known API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: .well Known
+paths:
+  /.well-known/agent-card.json:
+    get:
+      summary: A2A Agent Card
+      description: 'A2A discovery document (X-ASYNC). Path and required fields are the
+
+        spec''s, not ours — see specs/X-ASYNC-a2a-async-execution.md.'
+      operationId: a2a_agent_card__well_known_agent_card_json_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response A2A Agent Card  Well Known Agent Card Json Get
+      tags:
+      - .well Known
+  /.well-known/agent.json:
+    get:
+      summary: A2A Agent Card Legacy Path
+      description: 'The pre-v1.0 A2A path. The spec moved the Agent Card to
+
+        /.well-known/agent-card.json at v0.3, but real-world adoption lags --
+
+        a 2026-07 survey of 65 A2A providers found 23% still only serve the
+
+        old path -- and this repo''s own production logs (2026-08-16) show
+
+        real crawler traffic checking exactly this path and getting a 404.
+
+        Serves the identical card, not a second source of truth.'
+      operationId: a2a_agent_card_legacy_path__well_known_agent_json_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response A2A Agent Card Legacy Path  Well Known Agent Json Get
+      tags:
+      - .well Known
+  /.well-known/x402:
+    get:
+      summary: X402 Well Known
+      description: 'Compatibility discovery document some directories check before (or
+
+        instead of) crawling /openapi.json -- see x402scan''s docs/DISCOVERY.md
+
+        section B. Reuses the same live-rail predicate the OpenAPI x-payment-info
+
+        expansion already uses, never inferred from price alone.'
+      operationId: x402_well_known__well_known_x402_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response X402 Well Known  Well Known X402 Get
+      tags:
+      - .well Known
+  /.well-known/llms.txt:
+    get:
+      summary: Llms Txt
+      description: 'llms.txt (llmstxt.org convention -- not a ratified standard, but a
+
+        widely-adopted one). Root path is the dominant convention; the
+
+        /.well-known mirror is served too since 2026-08-16 production logs
+
+        show real crawlers checking that path specifically. Listing count is
+
+        computed live, never a hardcoded figure that could go stale or
+
+        overclaim.'
+      operationId: llms_txt__well_known_llms_txt_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      tags:
+      - .well Known
+  /.well-known/agent-capabilities:
+    get:
+      summary: Agent Capabilities
+      operationId: agent_capabilities__well_known_agent_capabilities_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentCapabilitiesResponse'
+      tags:
+      - .well Known
+  /.well-known/ai-catalog.json:
+    get:
+      summary: Ai Catalog
+      operationId: ai_catalog__well_known_ai_catalog_json_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentCatalogResponse'
+      tags:
+      - .well Known
+  /.well-known/api-catalog:
+    get:
+      summary: Api Catalog Linkset
+      description: 'RFC 9727 API catalog -- a linkset document for a generic agent that
+
+        doesn''t yet know anything macaroonnetwork-specific. One linkset entry
+
+        per live capability (each is independently anchored and purchasable, so
+
+        each is its own "API" per the RFC, not one entry for the whole
+
+        marketplace). service-desc always points at the shared OpenAPI document
+
+        -- there''s one combined spec, not one per capability.'
+      operationId: api_catalog_linkset__well_known_api_catalog_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      tags:
+      - .well Known
+  /.well-known/oauth-protected-resource:
+    get:
+      summary: Oauth Protected Resource
+      description: 'RFC 9728 Protected Resource Metadata. `authorization_servers` is
+
+        RFC 9728''s own optional field (Section 2) and is omitted rather than
+
+        populated with a value -- Macaroon Network has no OAuth authorization
+
+        server, and inventing one to satisfy a scanner would make this
+
+        document false. Published purely so machine readers get a real,
+
+        minimal RFC 9728 document instead of a 404; the actual access
+
+        contract is x402 payment, documented in full at /auth.md.'
+      operationId: oauth_protected_resource__well_known_oauth_protected_resource_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Oauth Protected Resource  Well Known Oauth Protected Resource Get
+      tags:
+      - .well Known
+components:
+  schemas:
+    CapabilityEntry:
+      properties:
+        capability_id:
+          type: string
+          title: Capability Id
+        price_sats:
+          type: integer
+          title: Price Sats
+        predicate_hash:
+          type: string
+          title: Predicate Hash
+        endpoint:
+          type: string
+          title: Endpoint
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+        badges:
+          items:
+            type: string
+          type: array
+          title: Badges
+        payment_rails:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Payment Rails
+        payment_offers:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Payment Offers
+        pricing:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Pricing
+        free_tier:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Free Tier
+        representative_queries:
+          items:
+            type: string
+          type: array
+          title: Representative Queries
+        detail_url:
+          type: string
+          title: Detail Url
+        execute_url:
+          type: string
+          title: Execute Url
+        method:
+          type: string
+          title: Method
+        content_type:
+          type: string
+          title: Content Type
+        input_schema:
+          additionalProperties: true
+          type: object
+          title: Input Schema
+        output_schema:
+          additionalProperties: true
+          type: object
+          title: Output Schema
+        example_request:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Example Request
+        payment:
+          additionalProperties: true
+          type: object
+          title: Payment
+      type: object
+      required:
+      - capability_id
+      - price_sats
+      - predicate_hash
+      - endpoint
+      - detail_url
+      - execute_url
+      - method
+      - content_type
+      - input_schema
+      - output_schema
+      - payment
+      title: CapabilityEntry
+    AgentCatalogResponse:
+      properties:
+        schema_version:
+          type: string
+          title: Schema Version
+        catalog_id:
+          type: string
+          title: Catalog Id
+        name:
+          type: string
+          title: Name
+        registry_url:
+          type: string
+          title: Registry Url
+        search_url:
+          type: string
+          title: Search Url
+        execute_base_url:
+          type: string
+          title: Execute Base Url
+        acquisition:
+          additionalProperties: true
+          type: object
+          title: Acquisition
+        capabilities:
+          items:
+            $ref: '#/components/schemas/AgentCatalogCapability'
+          type: array
+          title: Capabilities
+      type: object
+      required:
+      - schema_version
+      - catalog_id
+      - name
+      - registry_url
+      - search_url
+      - execute_base_url
+      - acquisition
+      - capabilities
+      title: AgentCatalogResponse
+    AgentCatalogCapability:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+        endpoint:
+          type: string
+          title: Endpoint
+        price_sats:
+          type: integer
+          title: Price Sats
+        predicate_hash:
+          type: string
+          title: Predicate Hash
+        badges:
+          items:
+            type: string
+          type: array
+          title: Badges
+        representative_queries:
+          items:
+            type: string
+          type: array
+          title: Representative Queries
+        payment_rails:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Payment Rails
+        payment_offers:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Payment Offers
+        pricing:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Pricing
+        free_tier:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Free Tier
+        validation:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Validation
+        validation_staking:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Validation Staking
+        subscriptions:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Subscriptions
+        input_schema:
+          additionalProperties: true
+          type: object
+          title: Input Schema
+        output_schema:
+          additionalProperties: true
+          type: object
+          title: Output Schema
+        detail_url:
+          type: string
+          title: Detail Url
+        execute_url:
+          type: string
+          title: Execute Url
+        method:
+          type: string
+          title: Method
+        content_type:
+          type: string
+          title: Content Type
+        example_request:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Example Request
+        payment:
+          additionalProperties: true
+          type: object
+          title: Payment
+      type: object
+      required:
+      - id
+      - name
+      - description
+      - endpoint
+      - price_sats
+      - predicate_hash
+      - input_schema
+      - output_schema
+      - detail_url
+      - execute_url
+      - method
+      - content_type
+      - payment
+      title: AgentCatalogCapability
+    AgentCapabilitiesResponse:
+      properties:
+        version:
+          type: string
+          title: Version
+        registry_url:
+          type: string
+          title: Registry Url
+        search_url:
+          type: string
+          title: Search Url
+        listings:
+          items:
+            $ref: '#/components/schemas/CapabilityEntry'
+          type: array
+          title: Listings
+      type: object
+      required:
+      - version
+      - registry_url
+      - search_url
+      - listings
+      title: AgentCapabilitiesResponse

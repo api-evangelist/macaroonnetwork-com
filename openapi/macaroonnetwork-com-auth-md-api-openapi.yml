@@ -1,0 +1,42 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services Auth.md API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: Auth.md
+paths:
+  /auth.md:
+    get:
+      summary: Auth Md
+      description: 'Auth.md agent-registration discovery (see auth.md''s own spec).
+
+        Deliberately does not claim OAuth, bearer tokens, API keys, or a
+
+        registration/claim flow this marketplace doesn''t have -- an earlier
+
+        version of this route invented register_uri/claim_uri fields to
+
+        chase a third-party readiness scanner''s authMd check, which made the
+
+        machine-readable surface less truthful, not more compatible. The
+
+        correct fix was publishing a real (if minimal) RFC 9728 document at
+
+        /.well-known/oauth-protected-resource that truthfully omits
+
+        authorization_servers -- see that route -- and describing the real
+
+        access model (anonymous discovery + x402 payment) honestly
+
+        here instead.'
+      operationId: auth_md_auth_md_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      tags:
+      - Auth.md

@@ -1,0 +1,668 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services SIMULATION & CFD API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: SIMULATION & CFD
+paths:
+  /execute/polymathica-heated-channel-job-v1:
+    post:
+      operationId: execute_polymathica_heated_channel_job_v1
+      summary: Heated-Channel PINN GPU Job
+      description: Durable asynchronous GPU-job submission. Settlement means the job was accepted and a job_id was returned; it does not mean the eventual PINN result converged or passed validation.
+      tags:
+      - SIMULATION & CFD
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.250000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - equation
+                  properties:
+                    seed:
+                      type: integer
+                      default: 551
+                      minimum: 0
+                    epochs:
+                      type: integer
+                      default: 1000
+                      maximum: 2000
+                      minimum: 10
+                    equation:
+                      type: string
+                      const: heated_channel_2d
+                    learning_rate:
+                      type: number
+                      default: 0.001
+                      maximum: 0.1
+                      exclusiveMinimum: 0
+                    boundary_points:
+                      type: integer
+                      default: 128
+                      maximum: 1024
+                      minimum: 8
+                    collocation_points:
+                      type: integer
+                      default: 512
+                      maximum: 4096
+                      minimum: 16
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: field_changed
+                    field: $.status
+                    value: running
+                    operator: eq
+              additionalProperties: false
+            example:
+              input:
+                equation: heated_channel_2d
+                seed: 551
+                epochs: 1000
+                learning_rate: 0.001
+                boundary_points: 128
+                collocation_points: 512
+              predicate:
+                type: field_changed
+                field: $.status
+                value: running
+                operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - job_id
+                    - status
+                    properties:
+                      job_id:
+                        type: string
+                        minLength: 1
+                      status:
+                        type: string
+                        const: running
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/vortx-validate-v1:
+    post:
+      operationId: execute_vortx_validate_v1
+      summary: VortX Validate
+      description: Analyse supplied CFD convergence, continuity, mass-flow and provenance evidence against declared v1 acceptance criteria. Returns calculated measurements, reasons, hashes and limitations; no formal engineering certification.
+      tags:
+      - SIMULATION & CFD
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '19.000000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - schema_version
+                  - case_id
+                  - residuals
+                  - mass_flow
+                  - provenance
+                  properties:
+                    case_id:
+                      type: string
+                      maxLength: 128
+                      minLength: 1
+                    mass_flow:
+                      type: object
+                      required:
+                      - inlets
+                      - outlets
+                      properties:
+                        inlets:
+                          type: array
+                          items:
+                            type: number
+                            minimum: 0
+                          maxItems: 1000
+                          minItems: 2
+                        outlets:
+                          type: array
+                          items:
+                            type: number
+                            minimum: 0
+                          maxItems: 1000
+                          minItems: 2
+                      additionalProperties: false
+                    residuals:
+                      type: object
+                      required:
+                      - continuity
+                      minProperties: 1
+                      additionalProperties:
+                        type: array
+                        items:
+                          type: number
+                          minimum: 0
+                        maxItems: 10000
+                        minItems: 2
+                    provenance:
+                      type: object
+                      required:
+                      - solver_name
+                      - solver_version
+                      - run_id
+                      - generated_at
+                      - execution_command
+                      - config_sha256
+                      - mesh_sha256
+                      - result_sha256
+                      properties:
+                        run_id:
+                          type: string
+                          minLength: 1
+                        mesh_sha256:
+                          type: string
+                          pattern: ^[0-9a-fA-F]{64}$
+                        solver_name:
+                          type: string
+                          minLength: 1
+                        generated_at:
+                          type: string
+                          minLength: 1
+                        config_sha256:
+                          type: string
+                          pattern: ^[0-9a-fA-F]{64}$
+                        result_sha256:
+                          type: string
+                          pattern: ^[0-9a-fA-F]{64}$
+                        solver_version:
+                          type: string
+                          minLength: 1
+                        execution_command:
+                          type: string
+                          minLength: 1
+                      additionalProperties: true
+                    schema_version:
+                      type: string
+                      const: cfd-evidence-v1
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.report_generated
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.required_checks_completed
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance_recorded
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.validation_evidence_present
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.acceptance_criteria_satisfied
+                      value: true
+                      operator: eq
+              additionalProperties: false
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - service_id
+                    - validation_run_id
+                    - input_hash
+                    - result_hash
+                    - predicate_hash
+                    - validator_version
+                    - timestamp
+                    - report_generated
+                    - required_checks_completed
+                    - provenance_recorded
+                    - validation_evidence_present
+                    - acceptance_criteria_satisfied
+                    - checks_executed
+                    - checks_passed
+                    - checks_failed
+                    - checks
+                    - limitations
+                    - evidence_refs
+                    - message
+                    properties:
+                      checks:
+                        type: array
+                        items:
+                          type: object
+                      message:
+                        type: string
+                      timestamp:
+                        type: string
+                      input_hash:
+                        type: string
+                        pattern: ^[0-9a-f]{64}$
+                      service_id:
+                        type: string
+                        const: polymathica-cfd-simulation-validator-v1
+                      limitations:
+                        type: array
+                        items:
+                          type: string
+                      result_hash:
+                        type: string
+                        pattern: ^[0-9a-f]{64}$
+                      checks_failed:
+                        type: array
+                        items:
+                          type: string
+                      checks_passed:
+                        type: array
+                        items:
+                          type: string
+                      evidence_refs:
+                        type: array
+                        items:
+                          type: string
+                      predicate_hash:
+                        type: string
+                        pattern: ^[0-9a-f]{64}$
+                      checks_executed:
+                        type: array
+                        items:
+                          type: string
+                      report_generated:
+                        type: boolean
+                      validation_run_id:
+                        type: string
+                      validator_version:
+                        type: string
+                        const: 1.0.0
+                      provenance_recorded:
+                        type: boolean
+                      required_checks_completed:
+                        type: boolean
+                      validation_evidence_present:
+                        type: boolean
+                      acceptance_criteria_satisfied:
+                        type: boolean
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/polymathica-cfd-simulation-validator-v1:
+    post:
+      operationId: execute_polymathica_cfd_simulation_validator_v1
+      summary: CFD Simulation Validator
+      description: Analyse supplied CFD convergence, continuity, mass-flow and provenance evidence against declared v1 acceptance criteria. Returns calculated measurements, reasons, hashes and limitations; no formal engineering certification.
+      tags:
+      - SIMULATION & CFD
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.250000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - schema_version
+                  - case_id
+                  - residuals
+                  - mass_flow
+                  - provenance
+                  properties:
+                    case_id:
+                      type: string
+                      maxLength: 128
+                      minLength: 1
+                    mass_flow:
+                      type: object
+                      required:
+                      - inlets
+                      - outlets
+                      properties:
+                        inlets:
+                          type: array
+                          items:
+                            type: number
+                            minimum: 0
+                          maxItems: 1000
+                          minItems: 2
+                        outlets:
+                          type: array
+                          items:
+                            type: number
+                            minimum: 0
+                          maxItems: 1000
+                          minItems: 2
+                      additionalProperties: false
+                    residuals:
+                      type: object
+                      required:
+                      - continuity
+                      minProperties: 1
+                      additionalProperties:
+                        type: array
+                        items:
+                          type: number
+                          minimum: 0
+                        maxItems: 10000
+                        minItems: 2
+                    provenance:
+                      type: object
+                      required:
+                      - solver_name
+                      - solver_version
+                      - run_id
+                      - generated_at
+                      - execution_command
+                      - config_sha256
+                      - mesh_sha256
+                      - result_sha256
+                      properties:
+                        run_id:
+                          type: string
+                          minLength: 1
+                        mesh_sha256:
+                          type: string
+                          pattern: ^[0-9a-fA-F]{64}$
+                        solver_name:
+                          type: string
+                          minLength: 1
+                        generated_at:
+                          type: string
+                          minLength: 1
+                        config_sha256:
+                          type: string
+                          pattern: ^[0-9a-fA-F]{64}$
+                        result_sha256:
+                          type: string
+                          pattern: ^[0-9a-fA-F]{64}$
+                        solver_version:
+                          type: string
+                          minLength: 1
+                        execution_command:
+                          type: string
+                          minLength: 1
+                      additionalProperties: true
+                    schema_version:
+                      type: string
+                      const: cfd-evidence-v1
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.report_generated
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.required_checks_completed
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance_recorded
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.validation_evidence_present
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.acceptance_criteria_satisfied
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                case_id: bazaar-indexing-validation-fixture
+                mass_flow:
+                  inlets:
+                  - 0.5
+                  - 0.5
+                  outlets:
+                  - 0.5
+                  - 0.5
+                residuals:
+                  continuity:
+                  - 0.1
+                  - 1.0e-05
+                provenance:
+                  run_id: bazaar-indexing-validation-fixture-v1
+                  mesh_sha256: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+                  solver_name: Macaroon deterministic validation fixture
+                  generated_at: '2026-08-13T00:00:00Z'
+                  config_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+                  result_sha256: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+                  solver_version: 1.0.0
+                  execution_command: deterministic-fixture-only; no solver execution claimed
+                schema_version: cfd-evidence-v1
+              predicate:
+                type: all
+                conditions:
+                - type: field_changed
+                  field: $.report_generated
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.required_checks_completed
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance_recorded
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.validation_evidence_present
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.acceptance_criteria_satisfied
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - service_id
+                    - validation_run_id
+                    - input_hash
+                    - result_hash
+                    - predicate_hash
+                    - validator_version
+                    - timestamp
+                    - report_generated
+                    - required_checks_completed
+                    - provenance_recorded
+                    - validation_evidence_present
+                    - acceptance_criteria_satisfied
+                    - checks_executed
+                    - checks_passed
+                    - checks_failed
+                    - checks
+                    - limitations
+                    - evidence_refs
+                    - message
+                    properties:
+                      checks:
+                        type: array
+                        items:
+                          type: object
+                      message:
+                        type: string
+                      timestamp:
+                        type: string
+                      input_hash:
+                        type: string
+                        pattern: ^[0-9a-f]{64}$
+                      service_id:
+                        type: string
+                        const: polymathica-cfd-simulation-validator-v1
+                      limitations:
+                        type: array
+                        items:
+                          type: string
+                      result_hash:
+                        type: string
+                        pattern: ^[0-9a-f]{64}$
+                      checks_failed:
+                        type: array
+                        items:
+                          type: string
+                      checks_passed:
+                        type: array
+                        items:
+                          type: string
+                      evidence_refs:
+                        type: array
+                        items:
+                          type: string
+                      predicate_hash:
+                        type: string
+                        pattern: ^[0-9a-f]{64}$
+                      checks_executed:
+                        type: array
+                        items:
+                          type: string
+                      report_generated:
+                        type: boolean
+                      validation_run_id:
+                        type: string
+                      validator_version:
+                        type: string
+                        const: 1.0.0
+                      provenance_recorded:
+                        type: boolean
+                      required_checks_completed:
+                        type: boolean
+                      validation_evidence_present:
+                        type: boolean
+                      acceptance_criteria_satisfied:
+                        type: boolean
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

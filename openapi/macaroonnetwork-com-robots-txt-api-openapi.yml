@@ -1,0 +1,22 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services Robots.txt API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: Robots.txt
+paths:
+  /robots.txt:
+    get:
+      summary: Api Robots
+      description: Let indexers find public contracts while avoiding private commerce paths.
+      operationId: api_robots_robots_txt_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      tags:
+      - Robots.txt

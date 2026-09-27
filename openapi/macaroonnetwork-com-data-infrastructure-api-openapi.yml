@@ -1,0 +1,152 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services DATA & INFRASTRUCTURE API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: DATA & INFRASTRUCTURE
+paths:
+  /execute/polymathica-transaction-intelligence-v1:
+    post:
+      operationId: execute_polymathica_transaction_intelligence_v1
+      summary: Live Agent Marketplace Transaction Intelligence
+      description: 'Measure live, aggregate commerce activity across this marketplace''s payment rails, including volume, success rates, and task-state breakdowns by rail and time window. Privacy-preserving by design: no buyer wallet, transaction hash, Lightning node id, or individual payment record is returned.'
+      tags:
+      - DATA & INFRASTRUCTURE
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.015000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  properties:
+                    rail:
+                      enum:
+                      - l402_lightning
+                      - x402
+                      - stablecoin_credit
+                      type: string
+                      description: 'Optional filter by payment rail: l402_lightning, x402, stablecoin_credit.'
+                    limit:
+                      type: integer
+                      default: 100
+                      maximum: 1000
+                      minimum: 1
+                    since:
+                      type: string
+                      description: Optional ISO-8601 timestamp; only observations after this.
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.total_observations
+                      value: 1
+                      operator: gte
+                    - type: field_changed
+                      field: $.provenance.aggregate_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input: {}
+              predicate:
+                type: all
+                conditions:
+                - type: field_changed
+                  field: $.total_observations
+                  value: 1
+                  operator: gte
+                - type: field_changed
+                  field: $.provenance.aggregate_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - patterns
+                    - total_observations
+                    - provenance
+                    properties:
+                      patterns:
+                        type: object
+                        required:
+                        - lightning
+                        - stablecoin
+                        - tasks
+                        properties:
+                          tasks:
+                            type: object
+                          lightning:
+                            type: object
+                          stablecoin:
+                            type: object
+                      provenance:
+                        type: object
+                        required:
+                        - no_outbound_network_on_purchase
+                        - aggregate_only
+                        - content_hash
+                        properties:
+                          content_hash:
+                            type: string
+                          aggregate_only:
+                            type: boolean
+                          no_outbound_network_on_purchase:
+                            type: boolean
+                      total_observations:
+                        type: integer
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

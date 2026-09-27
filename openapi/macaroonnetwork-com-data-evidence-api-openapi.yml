@@ -1,0 +1,328 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services DATA & EVIDENCE API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: DATA & EVIDENCE
+paths:
+  /execute/polymathica-archive-statistics-v1:
+    post:
+      operationId: execute_polymathica_archive_statistics_v1
+      summary: Polymathica Archive Corpus Statistics
+      description: 'Returns reproducible aggregate statistics for the sanitized Polymathica archive census: 77,053 source rows, unique hashes, domains, file types, readiness and quarantine counts.'
+      tags:
+      - DATA & EVIDENCE
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.001000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  properties: {}
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.summary.unique_assets
+                      value: 14000
+                      operator: gte
+                    - type: field_changed
+                      field: $.summary.absolute_paths_removed
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.summary.metadata_only
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input: {}
+              predicate:
+                type: all
+                conditions:
+                - type: field_changed
+                  field: $.summary.unique_assets
+                  value: 14000
+                  operator: gte
+                - type: field_changed
+                  field: $.summary.absolute_paths_removed
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.summary.metadata_only
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - summary
+                    - provenance
+                    properties:
+                      summary:
+                        type: object
+                      provenance:
+                        type: object
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/polymathica-archive-search-v1:
+    post:
+      operationId: execute_polymathica_archive_search_v1
+      summary: Polymathica Scientific Archive Search
+      description: Search a privacy-safe metadata index derived from 77,053 archived census rows and deduplicated to 23,370 unique content hashes. Includes readiness, quarantine, domain, file type, field names and provenance hashes; does not redistribute raw fields, media or third-party content.
+      tags:
+      - DATA & EVIDENCE
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  properties:
+                    limit:
+                      type: integer
+                      default: 10
+                      maximum: 50
+                      minimum: 1
+                    query:
+                      type: string
+                      example: Navier Stokes NPZ
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.absolute_paths_removed
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                query: Navier Stokes NPZ
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.absolute_paths_removed
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total_returned
+                    - provenance
+                    properties:
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                      total_returned:
+                        type: integer
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/polymathica-archive-record-v1:
+    post:
+      operationId: execute_polymathica_archive_record_v1
+      summary: Polymathica Archive Evidence Record
+      description: Retrieve one sanitized archive metadata record by asset id, including content hash, readiness state, field inventory summary and evidence flags.
+      tags:
+      - DATA & EVIDENCE
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.003000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - asset_id
+                  properties:
+                    asset_id:
+                      type: string
+                      example: disc:3825c0455a7d2e1dfd34
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.record.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.absolute_paths_removed
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                asset_id: disc:3825c0455a7d2e1dfd34
+              predicate:
+                type: all
+                conditions:
+                - type: field_changed
+                  field: $.record.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.absolute_paths_removed
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - record
+                    - provenance
+                    properties:
+                      record:
+                        type: object
+                      provenance:
+                        type: object
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

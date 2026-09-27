@@ -1,0 +1,122 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services COMPUTATIONAL RESEARCH API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: COMPUTATIONAL RESEARCH
+paths:
+  /execute/polymathica-solver-evidence-report-v1:
+    post:
+      operationId: execute_polymathica_solver_evidence_report_v1
+      summary: Scientific Solver Evidence Report
+      description: Retrieve a bounded evidence report for a validated Polymathica solver, including validation state/version, implementation source, evidence location, scope summary and registry-snapshot provenance.
+      tags:
+      - COMPUTATIONAL RESEARCH
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.010000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - solver_id
+                  properties:
+                    solver_id:
+                      type: string
+                      example: ns3d_full
+                      description: Exact solver id returned by the Validated Scientific Solver Index.
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.record.validation_state
+                      value: validated
+                      operator: eq
+                    - type: field_changed
+                      field: $.evidence_available
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                solver_id: ns3d_full
+              predicate:
+                type: all
+                conditions:
+                - type: field_changed
+                  field: $.record.validation_state
+                  value: validated
+                  operator: eq
+                - type: field_changed
+                  field: $.evidence_available
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - record
+                    - evidence_available
+                    - provenance
+                    properties:
+                      record:
+                        type: object
+                      provenance:
+                        type: object
+                      evidence_available:
+                        type: boolean
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

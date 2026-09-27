@@ -1,0 +1,674 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services AI FOR SCIENCE API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: AI FOR SCIENCE
+paths:
+  /execute/polymathica-validated-solver-index-v1:
+    post:
+      operationId: execute_polymathica_validated_solver_index_v1
+      summary: Validated Scientific Solver Index
+      description: Search a governed snapshot of implemented, validated Polymathica PDE and scientific-computing solvers. Returns validation versions, bounded evidence locations, implementation modules and provenance without claiming a fresh solver execution.
+      tags:
+      - AI FOR SCIENCE
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.005000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  properties:
+                    limit:
+                      type: integer
+                      default: 10
+                      maximum: 25
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Solver or PDE search, for example 'Navier Stokes spectral'.
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                query: Navier Stokes spectral
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/vortx-dream-v1:
+    post:
+      operationId: execute_vortx_dream_v1
+      summary: VortX Dream
+      description: Bounded heated-channel design exploration using a versioned reference-validated reduced-order surrogate.
+      tags:
+      - AI FOR SCIENCE
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '49.000000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - surrogate_id
+                  properties:
+                    seed:
+                      type: integer
+                      default: 551
+                      minimum: 0
+                    bounds:
+                      type: object
+                      properties:
+                        u_max:
+                          type: array
+                          maxItems: 2
+                          minItems: 2
+                          prefixItems:
+                          - type: number
+                          - type: number
+                        height:
+                          type: array
+                          maxItems: 2
+                          minItems: 2
+                          prefixItems:
+                          - type: number
+                          - type: number
+                        length:
+                          type: array
+                          maxItems: 2
+                          minItems: 2
+                          prefixItems:
+                          - type: number
+                          - type: number
+                        viscosity:
+                          type: array
+                          maxItems: 2
+                          minItems: 2
+                          prefixItems:
+                          - type: number
+                          - type: number
+                        thermal_diffusivity:
+                          type: array
+                          maxItems: 2
+                          minItems: 2
+                          prefixItems:
+                          - type: number
+                          - type: number
+                      additionalProperties: false
+                    constraints:
+                      type: object
+                      properties:
+                        min_thermal_exposure:
+                          type: number
+                          minimum: 0
+                      additionalProperties: false
+                    surrogate_id:
+                      type: string
+                      const: heated-channel-rom-v1
+                    candidate_count:
+                      type: integer
+                      default: 32
+                      maximum: 256
+                      minimum: 4
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.validation_passed
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.predicate_passed
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.candidates_feasible
+                      value: 0
+                      operator: gt
+              additionalProperties: false
+            example:
+              input:
+                surrogate_id: heated-channel-rom-v1
+                seed: 551
+                candidate_count: 32
+              predicate:
+                type: all
+                conditions:
+                - type: field_changed
+                  field: $.validation_passed
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.predicate_passed
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.candidates_feasible
+                  value: 0
+                  operator: gt
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - schema_version
+                    - service_id
+                    - model
+                    - validation_passed
+                    - candidates_generated
+                    - candidates_feasible
+                    - candidates
+                    - rejected_count
+                    - limitations
+                    - predicate_passed
+                    - provenance
+                    properties:
+                      model:
+                        type: object
+                      candidates:
+                        type: array
+                        items:
+                          type: object
+                      provenance:
+                        type: object
+                        required:
+                        - capability_id
+                        - run_id
+                        - input_hash
+                        - result_hash
+                        - generated_at
+                        properties:
+                          run_id:
+                            type: string
+                          input_hash:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          result_hash:
+                            type: string
+                            pattern: ^[0-9a-f]{64}$
+                          generated_at:
+                            type: string
+                            format: date-time
+                          capability_id:
+                            type: string
+                            const: vortx-dream-v1
+                      service_id:
+                        type: string
+                        const: vortx-dream-v1
+                      limitations:
+                        type: array
+                        items:
+                          type: string
+                      rejected_count:
+                        type: integer
+                        minimum: 0
+                      schema_version:
+                        type: string
+                        const: vortx-dream-result-v1
+                      predicate_passed:
+                        type: boolean
+                      validation_passed:
+                        type: boolean
+                      candidates_feasible:
+                        type: integer
+                        minimum: 0
+                      candidates_generated:
+                        type: integer
+                        minimum: 4
+                    additionalProperties: false
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/vortx-pinn-v1:
+    post:
+      operationId: execute_vortx_pinn_v1
+      summary: VortX PINN
+      description: Train and reference-validate a PhysicsNeMo heated-channel PINN with real GPU fields, losses, error metrics, and provenance.
+      tags:
+      - AI FOR SCIENCE
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '29.000000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  title: SolveRequest
+                  required:
+                  - equation
+                  properties:
+                    seed:
+                      type: integer
+                      title: Seed
+                      default: 551
+                      minimum: 0
+                    u_max:
+                      type: number
+                      title: U Max
+                      default: 1.0
+                      maximum: 10.0
+                      exclusiveMinimum: 0.0
+                    epochs:
+                      type: integer
+                      title: Epochs
+                      default: 1000
+                      maximum: 2000
+                      minimum: 10
+                    density:
+                      type: number
+                      title: Density
+                      default: 1.0
+                      maximum: 10.0
+                      exclusiveMinimum: 0.0
+                    equation:
+                      type: string
+                      const: heated_channel_2d
+                      title: Equation
+                    geometry:
+                      type: object
+                      title: Geometry
+                      properties:
+                        nx:
+                          type: integer
+                          title: Nx
+                          default: 48
+                          maximum: 256
+                          minimum: 8
+                        ny:
+                          type: integer
+                          title: Ny
+                          default: 24
+                          maximum: 256
+                          minimum: 8
+                        height:
+                          type: number
+                          title: Height
+                          default: 1.0
+                          maximum: 10.0
+                          exclusiveMinimum: 0.0
+                        length:
+                          type: number
+                          title: Length
+                          default: 8.0
+                          maximum: 50.0
+                          exclusiveMinimum: 0.0
+                    viscosity:
+                      type: number
+                      title: Viscosity
+                      default: 0.01
+                      maximum: 1.0
+                      exclusiveMinimum: 0.0
+                    learning_rate:
+                      type: number
+                      title: Learning Rate
+                      default: 0.001
+                      maximum: 0.1
+                      exclusiveMinimum: 0.0
+                    boundary_points:
+                      type: integer
+                      title: Boundary Points
+                      default: 128
+                      maximum: 1024
+                      minimum: 8
+                    collocation_points:
+                      type: integer
+                      title: Collocation Points
+                      default: 512
+                      maximum: 4096
+                      minimum: 16
+                    boundary_conditions:
+                      type: object
+                      title: BoundaryConditions
+                      properties:
+                        t_hot:
+                          type: number
+                          title: T Hot
+                          default: 1.0
+                        t_cold:
+                          type: number
+                          title: T Cold
+                          default: 0.0
+                    thermal_diffusivity:
+                      type: number
+                      title: Thermal Diffusivity
+                      default: 0.025
+                      maximum: 1.0
+                      exclusiveMinimum: 0.0
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.validation.converged
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.validation.passed
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.residual_loss
+                      value: 50.0
+                      operator: lt
+              additionalProperties: false
+            example:
+              input:
+                equation: heated_channel_2d
+                seed: 551
+                u_max: 1.0
+                epochs: 1000
+                density: 1.0
+                viscosity: 0.01
+                learning_rate: 0.001
+                boundary_points: 128
+                collocation_points: 512
+                thermal_diffusivity: 0.025
+              predicate:
+                type: all
+                conditions:
+                - type: field_changed
+                  field: $.validation.converged
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.validation.passed
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.residual_loss
+                  value: 50.0
+                  operator: lt
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    title: SolveResponse
+                    required:
+                    - solution
+                    - residual_loss
+                    - validation
+                    - provenance
+                    properties:
+                      solution:
+                        type: object
+                        title: Solution
+                        required:
+                        - u
+                        - v
+                        - p
+                        - T
+                        - x_grid
+                        - y_grid
+                        - shape
+                        properties:
+                          T:
+                            type: array
+                            items:
+                              type: number
+                            title: T
+                          p:
+                            type: array
+                            items:
+                              type: number
+                            title: P
+                          u:
+                            type: array
+                            items:
+                              type: number
+                            title: U
+                          v:
+                            type: array
+                            items:
+                              type: number
+                            title: V
+                          shape:
+                            type: array
+                            items:
+                              type: integer
+                            title: Shape
+                          x_grid:
+                            type: array
+                            items:
+                              type: number
+                            title: X Grid
+                          y_grid:
+                            type: array
+                            items:
+                              type: number
+                            title: Y Grid
+                      provenance:
+                        type: object
+                        title: Provenance
+                        required:
+                        - solver_version
+                        - physicsnemo_available
+                        - physicsnemo_version
+                        - gpu
+                        - solved_at
+                        - solution_hash
+                        properties:
+                          gpu:
+                            type: string
+                            title: Gpu
+                          solved_at:
+                            type: string
+                            title: Solved At
+                          solution_hash:
+                            type: string
+                            title: Solution Hash
+                          solver_version:
+                            type: string
+                            title: Solver Version
+                          physicsnemo_version:
+                            anyOf:
+                            - type: string
+                            - type: 'null'
+                            title: Physicsnemo Version
+                          physicsnemo_available:
+                            type: boolean
+                            title: Physicsnemo Available
+                      validation:
+                        type: object
+                        title: Validation
+                        required:
+                        - passed
+                        - converged
+                        - physics_check
+                        - epochs_run
+                        - temperature_relative_l2_error
+                        - velocity_profile_relative_l2_error
+                        properties:
+                          passed:
+                            type: boolean
+                            title: Passed
+                          converged:
+                            type: boolean
+                            title: Converged
+                          epochs_run:
+                            type: integer
+                            title: Epochs Run
+                          physics_check:
+                            type: string
+                            title: Physics Check
+                          temperature_relative_l2_error:
+                            type: number
+                            title: Temperature Relative L2 Error
+                          velocity_profile_relative_l2_error:
+                            type: number
+                            title: Velocity Profile Relative L2 Error
+                      residual_loss:
+                        type: number
+                        title: Residual Loss
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

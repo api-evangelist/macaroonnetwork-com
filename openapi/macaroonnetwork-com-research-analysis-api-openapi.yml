@@ -1,0 +1,228 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services RESEARCH & ANALYSIS API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: RESEARCH & ANALYSIS
+paths:
+  /execute/consensus-science-reviewer-v1:
+    post:
+      operationId: execute_consensus_science_reviewer_v1
+      summary: Consensus Science Reviewer
+      description: Evidence-bundle consensus and disagreement review with citation integrity and transparent weighting.
+      tags:
+      - RESEARCH & ANALYSIS
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '39.000000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - question
+                  - sources
+                  - claims
+                  properties:
+                    claims:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - id
+                        - text
+                        - evidence
+                        properties:
+                          id:
+                            type: string
+                          text:
+                            type: string
+                          evidence:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - source_id
+                              - direction
+                              properties:
+                                direction:
+                                  enum:
+                                  - supports
+                                  - contradicts
+                                  - mixed
+                                  - not_addressed
+                                  type: string
+                                relevance:
+                                  type: number
+                                  default: 1
+                                  maximum: 1
+                                  minimum: 0
+                                source_id:
+                                  type: string
+                              additionalProperties: false
+                            minItems: 1
+                        additionalProperties: false
+                      maxItems: 50
+                      minItems: 1
+                    sources:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - id
+                        - title
+                        - url
+                        - year
+                        - source_type
+                        - peer_reviewed
+                        properties:
+                          id:
+                            type: string
+                            minLength: 1
+                          url:
+                            type: string
+                            format: uri
+                            pattern: ^https://
+                          year:
+                            type: integer
+                            maximum: 2100
+                            minimum: 1600
+                          notes:
+                            type: string
+                            maxLength: 2000
+                          title:
+                            type: string
+                            minLength: 1
+                          corrected:
+                            type: boolean
+                            default: false
+                          retracted:
+                            type: boolean
+                            default: false
+                          source_type:
+                            enum:
+                            - primary_study
+                            - systematic_review
+                            - meta_analysis
+                            - preprint
+                            - dataset
+                            - other
+                            type: string
+                          peer_reviewed:
+                            type: boolean
+                          study_quality:
+                            type: number
+                            default: 0.5
+                            maximum: 1
+                            minimum: 0
+                        additionalProperties: false
+                      maxItems: 100
+                      minItems: 2
+                    question:
+                      type: string
+                      maxLength: 500
+                      minLength: 1
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.citations_verified
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.review_status
+                      value: complete
+                      operator: eq
+                    - type: field_changed
+                      field: $.claims_reviewed
+                      value: 0
+                      operator: gt
+              additionalProperties: false
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - schema_version
+                    - service_id
+                    - review_status
+                    - source_summary
+                    - claims
+                    - citations_verified
+                    - claims_reviewed
+                    - limitations
+                    - provenance
+                    properties:
+                      claims:
+                        type: array
+                        items:
+                          type: object
+                      provenance:
+                        type: object
+                      service_id:
+                        type: string
+                        const: consensus-science-reviewer-v1
+                      limitations:
+                        type: array
+                        items:
+                          type: string
+                      review_status:
+                        enum:
+                        - complete
+                        - partial
+                        type: string
+                      schema_version:
+                        type: string
+                        const: consensus-science-review-v1
+                      source_summary:
+                        type: object
+                      claims_reviewed:
+                        type: integer
+                      citations_verified:
+                        type: boolean
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

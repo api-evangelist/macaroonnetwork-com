@@ -1,0 +1,1816 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services COMPLIANCE & RISK API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: COMPLIANCE & RISK
+paths:
+  /execute/sanctions-pep-screening-v1:
+    post:
+      operationId: execute_sanctions_pep_screening_v1
+      summary: Sanctions & PEP Screening
+      description: Screen a name in one call against US OFAC SDN, the EU Consolidated Financial Sanctions List, UK OFSI, the UN Security Council Consolidated List, and Wikidata-derived Politically Exposed Persons (PEP) data -- with fuzzy name matching, not exact-only. Real competitor research (2026-09-11) found this exact bundle+fuzzy-match shape is what actually converts in this niche; the single-source exact-match ofac-sanctions-search-v1 listing did not.
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.010000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - source_ids
+                  properties:
+                    query:
+                      type: string
+                      maxLength: 200
+                      minLength: 1
+                      description: Name to screen, for example 'Vladimir Putin' or 'Banco Nacional de Cuba'.
+                    source_ids:
+                      type: array
+                      const:
+                      - macaroon-internal-screening-request-v1
+                      description: Fixed sentinel; send exactly this array unchanged. Selects the bundled screening path rather than plain metadata search on the same shared endpoint.
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.sources_checked
+                      value: 5
+              additionalProperties: false
+            example:
+              input:
+                query: Vladimir Putin
+                source_ids:
+                - macaroon-internal-screening-request-v1
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.sources_checked
+                  value: 5
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - query
+                    - matches
+                    - sources_checked
+                    - risk_level
+                    - generated_at
+                    - content_hash
+                    properties:
+                      query:
+                        type: string
+                      matches:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                          - name
+                          - matched_on
+                          - score
+                          - source_id
+                          - source_name
+                          - source_url
+                          properties:
+                            name:
+                              type: string
+                            score:
+                              type: number
+                            source_id:
+                              type: string
+                            matched_on:
+                              enum:
+                              - title
+                              - alias
+                              type: string
+                            source_url:
+                              type: string
+                            source_name:
+                              type: string
+                            matched_alias:
+                              type:
+                              - string
+                              - 'null'
+                      risk_level:
+                        enum:
+                        - clear
+                        - review
+                        - hit
+                        type: string
+                      content_hash:
+                        type: string
+                      generated_at:
+                        type: string
+                      sources_checked:
+                        type: array
+                        items:
+                          type: string
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/federal-register-search-v1:
+    post:
+      operationId: execute_federal_register_search_v1
+      summary: Federal Register Search
+      description: Search U.S. federal regulatory documents -- final rules, proposed rules, notices, and presidential documents -- by keyword, document type, issuing agency, and publication date range. The only source used is the Federal Register's own public API (federalregister.gov), published by the National Archives and Records Administration's Office of the Federal Register.
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  properties:
+                    query:
+                      type: string
+                      maxLength: 200
+                      minLength: 1
+                      description: Free-text search term matched against document title/text (e.g. 'data protection', 'tariffs').
+                    filters:
+                      type: object
+                      properties:
+                        limit:
+                          type: integer
+                          maximum: 25
+                          minimum: 1
+                        agency_slug:
+                          type: string
+                          maxLength: 100
+                          description: Exact agency slug, e.g. 'environmental-protection-agency'.
+                        document_type:
+                          enum:
+                          - RULE
+                          - PRORULE
+                          - NOTICE
+                          - PRESDOCU
+                          type: string
+                          description: RULE=Final Rule, PRORULE=Proposed Rule, NOTICE=Notice, PRESDOCU=Presidential Document.
+                        published_after:
+                          type: string
+                          maxLength: 10
+                          description: ISO date YYYY-MM-DD; only documents published on/after this date.
+                        published_before:
+                          type: string
+                          maxLength: 10
+                          description: ISO date YYYY-MM-DD; only documents published on/before this date.
+                      additionalProperties: false
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.results
+                      value: 1
+              additionalProperties: false
+            example:
+              input:
+                query: data protection
+                filters:
+                  limit: 5
+                  document_type: NOTICE
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.results
+                  value: 1
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - query
+                    - results
+                    - notices
+                    properties:
+                      query:
+                        type: object
+                        required:
+                        - query
+                        - filters
+                        properties:
+                          query:
+                            type: string
+                          filters:
+                            type: object
+                        additionalProperties: false
+                      notices:
+                        type: array
+                        items:
+                          type: string
+                      results:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                          - title
+                          - type
+                          - document_number
+                          - html_url
+                          - pdf_url
+                          - publication_date
+                          - agencies
+                          - licence
+                          - attribution
+                          - provenance
+                          - content_hash
+                          - limitations
+                          properties:
+                            type:
+                              type: string
+                            title:
+                              type: string
+                            licence:
+                              type: string
+                            pdf_url:
+                              type: string
+                            abstract:
+                              type: string
+                            agencies:
+                              type: array
+                              items:
+                                type: object
+                                required:
+                                - name
+                                - slug
+                                - url
+                                properties:
+                                  url:
+                                    type: string
+                                  name:
+                                    type: string
+                                  slug:
+                                    type: string
+                                additionalProperties: false
+                            html_url:
+                              type: string
+                            provenance:
+                              type: array
+                              items:
+                                type: object
+                                required:
+                                - source
+                                - source_url
+                                - licence
+                                - fetched_at
+                                - processed_at
+                                properties:
+                                  source:
+                                    type: string
+                                  licence:
+                                    type: string
+                                  fetched_at:
+                                    type: string
+                                  source_url:
+                                    type: string
+                                  processed_at:
+                                    type: string
+                                additionalProperties: false
+                            attribution:
+                              type: string
+                            comment_url:
+                              type: string
+                            limitations:
+                              type: array
+                              items:
+                                type: string
+                            content_hash:
+                              type: string
+                            effective_on:
+                              type: string
+                            document_number:
+                              type: string
+                            publication_date:
+                              type: string
+                            comments_close_on:
+                              type: string
+                          additionalProperties: false
+                    additionalProperties: false
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/companies-house-live-discovery-v1:
+    post:
+      operationId: execute_companies_house_live_discovery_v1
+      summary: Live UK Company Discovery
+      description: Discover current UK companies through the official Companies House advanced search using bounded filters for company-name inclusion, status, type, incorporation date range, location, and five-digit SIC code. Returns at most 20 normalized company-level public-register records.
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.010000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      default: 10
+                      maximum: 20
+                      minimum: 1
+                    location:
+                      type: string
+                      maxLength: 100
+                      minLength: 1
+                    sic_code:
+                      type: string
+                      pattern: ^[0-9]{5}$
+                    company_type:
+                      enum:
+                      - ltd
+                      - plc
+                      - limited-partnership
+                      - lbg
+                      - civic-company
+                      - company-cv
+                      - old-public-company
+                      - public-benefit-industry-body
+                      - royal-charter
+                      - royal-charter-company
+                      - scottish-company
+                      - scottish-limited-partnership
+                      - northern-ireland-company
+                      - northern-ireland-unsupported-company
+                      - icvc-general-public-limited-company
+                      - icvc-segregated-portfolio-investment-fund
+                      - icvc-open-ended-fund
+                      - icvc-umbrella-open-ended-fund
+                      - icvc-umbrella-segregated-portfolio-investment-fund
+                      - converted-debentur
+                      - continuing-regulation-fund
+                      - regional-financial-co-operation
+                      type: string
+                    company_status:
+                      enum:
+                      - active
+                      - dissolution
+                      - liquidation
+                      - receivership
+                      - administration
+                      - voluntary-arrangement
+                      - converted
+                      - ceasing-to-trade
+                      - no-longer-registered
+                      type: string
+                    incorporated_to:
+                      type: string
+                      pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+                    incorporated_from:
+                      type: string
+                      pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+                    company_name_inclusion:
+                      type: string
+                      maxLength: 160
+                      minLength: 1
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.live_data
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.outbound_network_used
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 10
+                company_status: active
+                company_name_inclusion: Macaroon
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.live_data
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.outbound_network_used
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - filters
+                    - provenance
+                    properties:
+                      total:
+                        type: integer
+                      filters:
+                        type: object
+                      records:
+                        type: array
+                        maxItems: 20
+                      provenance:
+                        type: object
+                        required:
+                        - source
+                        - source_endpoint
+                        - retrieved_at
+                        - content_hash
+                        - metadata_only
+                        - live_data
+                        - outbound_network_used
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/companies-house-live-profile-v1:
+    post:
+      operationId: execute_companies_house_live_profile_v1
+      summary: Live UK Company Profile & Filing Status
+      description: Fetch current public-register facts for one UK company by exact company number from the official Companies House Public Data API. Returns company status and type, incorporation date, SIC codes, registered-office locality and postcode, and accounts and confirmation-statement due or overdue facts.
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.005000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - company_number
+                  properties:
+                    company_number:
+                      type: string
+                      pattern: ^[0-9A-Za-z ]+$
+                      maxLength: 16
+                      minLength: 1
+                      description: Exact UK company number; whitespace is normalized server-side.
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: field_changed
+                      field: $.record.source
+                      value: Companies House Public Data API
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.live_data
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.outbound_network_used
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                company_number: '12662363'
+              predicate:
+                type: all
+                conditions:
+                - type: field_changed
+                  field: $.record.source
+                  value: Companies House Public Data API
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.live_data
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.outbound_network_used
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - company_number
+                    - record
+                    - provenance
+                    properties:
+                      record:
+                        oneOf:
+                        - type: object
+                        - type: 'null'
+                      provenance:
+                        type: object
+                        required:
+                        - source
+                        - source_endpoint
+                        - retrieved_at
+                        - content_hash
+                        - metadata_only
+                        - live_data
+                        - outbound_network_used
+                      company_number:
+                        type: string
+                    additionalProperties: false
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/companies-house-live-search-v1:
+    post:
+      operationId: execute_companies_house_live_search_v1
+      summary: Live UK Company Search
+      description: Search current public UK company metadata from the official Companies House Public Data API. Returns a bounded normalized result with company identity, status, type, creation date, registered-address summary, official record link, retrieval time, and content hash.
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.005000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      maxLength: 160
+                      minLength: 1
+                      description: UK company name or keyword.
+                  additionalProperties: false
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.live_data
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.outbound_network_used
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 1
+                query: Macaroon Network
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.live_data
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.outbound_network_used
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - source
+                        - source_endpoint
+                        - retrieved_at
+                        - content_hash
+                        - metadata_only
+                        - live_data
+                        - outbound_network_used
+                    additionalProperties: false
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/nvd-cve-search-v1:
+    post:
+      operationId: execute_nvd_cve_search_v1
+      summary: NVD CVE Vulnerability Search (Full Corpus)
+      description: Search the full 100,000-record NVD (NIST) CVE corpus -- description, CVSS base score, and CVSS base severity, harvested directly from the NVD API and confirmed public domain. This is the complete harvested corpus, distinct from the smaller 1,765-record cve-search-v1 listing, which draws from a five-keyword sample cross-referenced with the CISA Known Exploited Vulnerabilities list; that KEV cross-reference is not part of this corpus.
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  - source_ids
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Vulnerability class, product keyword, or CVE ID, for example 'buffer overflow' or 'CVE-1999-0095'.
+                    source_ids:
+                      type: array
+                      const:
+                      - nvd-cve
+                      description: Fixed source filter; send exactly ['nvd-cve'].
+                    asset_types:
+                      type: array
+                      const:
+                      - event
+                      description: Fixed product filter; send exactly ['event'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: buffer overflow
+                source_ids:
+                - nvd-cve
+                asset_types:
+                - event
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/sec-filing-search-v1:
+    post:
+      operationId: execute_sec_filing_search_v1
+      summary: SEC Filing Search
+      description: Search a bounded snapshot of SEC EDGAR full-text filings (10-K, 10-Q, 8-K) by keyword -- company, CIK, form type, and filing date.
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.010000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  - source_ids
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Keyword or topic, for example 'artificial intelligence' or 'cybersecurity incident'.
+                    source_ids:
+                      type: array
+                      const:
+                      - sec-edgar
+                      description: Fixed source filter; send exactly ['sec-edgar'].
+                    asset_types:
+                      type: array
+                      const:
+                      - filing
+                      description: Fixed product filter; send exactly ['filing'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: artificial intelligence
+                source_ids:
+                - sec-edgar
+                asset_types:
+                - filing
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/recalls-search-v1:
+    post:
+      operationId: execute_recalls_search_v1
+      summary: FDA Product Recall Search
+      description: Search recent US FDA food and drug recall enforcement records -- product, manufacturer, reason, and risk classification. Published under CC0 1.0 Universal, explicit commercial reuse permitted. Device recalls deliberately excluded (separately licensed GMDN terminology).
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  - source_ids
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Product or firm keyword, for example 'injectable' or a manufacturer name.
+                    source_ids:
+                      type: array
+                      const:
+                      - openfda-recalls
+                      description: Fixed source filter; send exactly ['openfda-recalls'].
+                    asset_types:
+                      type: array
+                      const:
+                      - event
+                      description: Fixed product filter; send exactly ['event'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: injectable
+                source_ids:
+                - openfda-recalls
+                asset_types:
+                - event
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/procurement-search-v1:
+    post:
+      operationId: execute_procurement_search_v1
+      summary: UK Procurement Notice Search
+      description: Search recent UK public-sector procurement notices from Find a Tender -- buyer, value, CPV category, and status. Published under the Open Government Licence v3.0, confirmed directly from the source's own declared package licence.
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.003000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  - source_ids
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Keyword or category, for example 'IT services' or 'construction'.
+                    source_ids:
+                      type: array
+                      const:
+                      - find-a-tender
+                      description: Fixed source filter; send exactly ['find-a-tender'].
+                    asset_types:
+                      type: array
+                      const:
+                      - tender
+                      description: Fixed product filter; send exactly ['tender'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: IT services
+                source_ids:
+                - find-a-tender
+                asset_types:
+                - tender
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/cve-search-v1:
+    post:
+      operationId: execute_cve_search_v1
+      summary: CVE Vulnerability Search
+      description: Search a bounded snapshot of NVD (NIST) CVE records merged with the complete CISA Known Exploited Vulnerabilities list -- description, CVSS severity, and whether the CVE is known to be actively exploited in the wild.
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  - source_ids
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Vulnerability class or product keyword, for example 'remote code execution'.
+                    source_ids:
+                      type: array
+                      const:
+                      - cve
+                      description: Fixed source filter; send exactly ['cve'].
+                    asset_types:
+                      type: array
+                      const:
+                      - event
+                      description: Fixed product filter; send exactly ['event'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: remote code execution
+                source_ids:
+                - cve
+                asset_types:
+                - event
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/ofac-sanctions-search-v1:
+    post:
+      operationId: execute_ofac_sanctions_search_v1
+      summary: OFAC Sanctions List Search
+      description: Search the full US Treasury OFAC Specially Designated Nationals (SDN) list -- name, sanctions programme, and entity type -- for compliance/denied-party screening. Complete 19,199-entry list, not a bounded sample.
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.010000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  - source_ids
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Name or keyword to screen, for example 'Banco Nacional de Cuba'.
+                    source_ids:
+                      type: array
+                      const:
+                      - ofac-sdn
+                      description: Fixed source filter; send exactly ['ofac-sdn'].
+                    asset_types:
+                      type: array
+                      const:
+                      - sanctions_match
+                      description: Fixed product filter; send exactly ['sanctions_match'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: shipping company
+                source_ids:
+                - ofac-sdn
+                asset_types:
+                - sanctions_match
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.
+  /execute/companies-house-search-v1:
+    post:
+      operationId: execute_companies_house_search_v1
+      summary: UK Company Search
+      description: Search a bounded snapshot of the UK Companies House register -- company name, number, status, category, registered address, and SIC code. Published under the Open Government Licence v3.0, which explicitly permits commercial reuse.
+      tags:
+      - COMPLIANCE & RISK
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.005000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  - source_ids
+                  properties:
+                    limit:
+                      type: integer
+                      default: 5
+                      maximum: 5
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Company name or keyword, for example 'graphics limited'.
+                    source_ids:
+                      type: array
+                      const:
+                      - companies-house
+                      description: Fixed source filter; send exactly ['companies-house'].
+                    asset_types:
+                      type: array
+                      const:
+                      - company
+                      description: Fixed product filter; send exactly ['company'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 5
+                query: engineering company
+                source_ids:
+                - companies-house
+                asset_types:
+                - company
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

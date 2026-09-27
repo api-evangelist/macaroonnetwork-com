@@ -1,0 +1,121 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services Execute API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: Execute
+paths:
+  /execute/{capability_id}:
+    get:
+      summary: Execute Payment Required
+      description: 'Discovery crawlers (x402 Bazaar among them) GET the resource URL and
+
+        index it only if it answers 402. The real call is a POST carrying input
+
+        and a predicate, so this exists purely to advertise the price -- it never
+
+        executes anything and never takes payment.'
+      operationId: execute_payment_required_execute__capability_id__get
+      parameters:
+      - name: capability_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Capability Id
+        description: Substitute a concrete capability id; do not send the literal {capability_id} template.
+        example: sanctions-pep-screening-v1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Execute Payment Required Execute  Capability Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Execute
+    post:
+      summary: Execute Capability
+      operationId: execute_capability_execute__capability_id__post
+      parameters:
+      - name: capability_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Capability Id
+        description: Substitute a concrete capability id; do not send the literal {capability_id} template.
+        example: sanctions-pep-screening-v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - type: object
+                additionalProperties: true
+              - type: 'null'
+              title: Body
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Execute Capability Execute  Capability Id  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      tags:
+      - Execute
+components:
+  schemas:
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

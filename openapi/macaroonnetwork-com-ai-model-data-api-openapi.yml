@@ -1,0 +1,140 @@
+openapi: 3.2.0
+info:
+  title: Macaroon Network Agent Services AI MODEL DATA API
+  description: Pay-per-call scientific search, evidence, validation, and simulation services with explicit provenance and limitations.
+  version: 1.0.0
+  x-guidance: Choose a concrete POST /execute/<capability-id> operation. Send the documented JSON body, receive an x402 v2 USDC challenge on Base, then retry with PAYMENT-SIGNATURE. Treat licence status and validation claims exactly as returned; unknown evidence is not permission.
+tags:
+- name: AI MODEL DATA
+paths:
+  /execute/polymathica-scientific-model-search-v1:
+    post:
+      operationId: execute_polymathica_scientific_model_search_v1
+      summary: Scientific Model Search
+      description: Find source-linked scientific machine-learning model records by topic. Returns metadata and provenance pointers only; model weights are not downloaded or resold, and missing licence evidence remains unknown.
+      tags:
+      - AI MODEL DATA
+      x-payment-info:
+        price:
+          mode: fixed
+          currency: USD
+          amount: '0.002000'
+        protocols:
+        - x402: {}
+        network: base
+        asset: USDC
+        paymentRequiredHeader: PAYMENT-REQUIRED
+        paymentSignatureHeader: PAYMENT-SIGNATURE
+        paymentResponseHeader: PAYMENT-RESPONSE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              - predicate
+              properties:
+                input:
+                  type: object
+                  required:
+                  - query
+                  - asset_types
+                  properties:
+                    limit:
+                      type: integer
+                      default: 10
+                      maximum: 50
+                      minimum: 1
+                    query:
+                      type: string
+                      description: Scientific model topic, for example 'PDEBench'.
+                    asset_types:
+                      type: array
+                      const:
+                      - model
+                      description: Fixed product filter; send exactly ['model'].
+                predicate:
+                  type: object
+                  description: Acceptance predicate evaluated before settlement.
+                  example:
+                    type: all
+                    conditions:
+                    - type: count_gte
+                      field: $.records
+                      value: 1
+                    - type: field_changed
+                      field: $.provenance.metadata_only
+                      value: true
+                      operator: eq
+                    - type: field_changed
+                      field: $.provenance.no_outbound_network_on_purchase
+                      value: true
+                      operator: eq
+              additionalProperties: false
+            example:
+              input:
+                limit: 10
+                query: PDEBench
+                asset_types:
+                - model
+              predicate:
+                type: all
+                conditions:
+                - type: count_gte
+                  field: $.records
+                  value: 1
+                - type: field_changed
+                  field: $.provenance.metadata_only
+                  value: true
+                  operator: eq
+                - type: field_changed
+                  field: $.provenance.no_outbound_network_on_purchase
+                  value: true
+                  operator: eq
+      responses:
+        '200':
+          description: Predicate-gated result and commercial receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - payload
+                - predicate_passed
+                - receipt
+                properties:
+                  payload:
+                    type: object
+                    required:
+                    - records
+                    - total
+                    - query
+                    - provenance
+                    properties:
+                      query:
+                        type: string
+                      total:
+                        type: integer
+                      records:
+                        type: array
+                      provenance:
+                        type: object
+                        required:
+                        - content_hash
+                        - metadata_only
+                        - no_outbound_network_on_purchase
+                  predicate_passed:
+                    type: boolean
+                  receipt:
+                    type: object
+        '402':
+          description: x402 Payment Required. Decode PAYMENT-REQUIRED, satisfy the declared exact USDC requirement, then retry this same valid JSON request with PAYMENT-SIGNATURE.
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 payment requirements.
+              schema:
+                type: string
+        '422':
+          description: Invalid paid execution request.

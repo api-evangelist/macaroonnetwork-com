@@ -13,6 +13,21 @@ description: >-
   an RFC 9116 security.txt, llms.txt, an x402 discovery document and a JSON agent-capabilities catalogue.
   Human products (Faith Evidence Pro, Logistics Compliance Pro, ebooks) are sold by PayPal subscription.
 url: https://raw.githubusercontent.com/api-evangelist/macaroonnetwork-com/refs/heads/main/apis.yml
+deliveryModel:
+  model: saas
+  license_evidence:
+    not_product:
+    - kevmoz/macaroonnetwork-mcp
+  open_source: unknown
+  commercial: true
+  callable_host: false
+  label: Hosted service · you call their endpoint
+  confidence: low
+  source:
+  - pricing
+  - repository-not-product
+  generated: '2026-09-25'
+  method: derived
 image: https://macaroonnetwork.com/og-cover.png
 x-type: company
 x-source: harvest:a2a-registry
@@ -34,7 +49,7 @@ tags:
 - Scientific Computing
 - Bible
 - United Kingdom
-- agent-native
+- Agent-Native
 tags_raw:
 - Agents
 - Agent commerce
@@ -50,57 +65,17 @@ tags_raw:
 - United Kingdom
 - Agent-native
 - Agent Commerce
+- agent-native
 apis:
-- aid: macaroonnetwork-com:agent-services-api
-  name: Macaroon Network Agent Services API
-  description: >-
-    The REST surface behind the marketplace: anonymous discovery (GET /listings, /listings/search?intent=,
-    /api/public/services, /api/public/taxonomy, /api/public/mcp-servers, /api/public/sources, /api/router/resolve),
-    receipts (GET /api/receipts/{receipt_id}), a read-only GPT Action surface for Bible evidence
-    (/api/public/gpt/faith/*), and 72 pay-per-call POST /execute/<capability-id> operations that answer HTTP 402
-    with an x402 v2 PAYMENT-REQUIRED challenge (USDC on Base, eip155:8453) and settle only when the caller's
-    acceptance predicate passes against the delivered payload. OpenAPI 3.1.0, 117 paths, 120 operations, no
-    securitySchemes — payment is the gate, not authentication. Swagger UI at /docs, ReDoc at /redoc.
-  tags:
-  - Agentic Commerce
-  - x402
-  - Data Marketplace
-  - Compliance
-  - Scientific Computing
-  tags_raw:
-  - Agent Commerce
-  - x402
-  - Data Marketplace
-  - Compliance
-  - Scientific Computing
-  humanURL: https://macaroonnetwork.com/services
-  baseURL: https://api.macaroonnetwork.com
-  properties:
-  - type: OpenAPI
-    url: openapi/macaroonnetwork-com-openapi.json
-  - type: OpenAPI
-    name: OpenAPI (provider-hosted)
-    url: https://api.macaroonnetwork.com/openapi.json
-  - type: APIReference
-    name: Swagger UI
-    url: https://api.macaroonnetwork.com/docs
-  - type: Documentation
-    name: Listing pages (input/output contracts, predicate, curl integration)
-    url: https://macaroonnetwork.com/listings
-  - type: Overlay
-    url: overlays/macaroonnetwork-com-openapi-overlay.yaml
-  - type: AICatalog
-    name: Agent catalog (/.well-known/ai-catalog.json)
-    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
 - aid: macaroonnetwork-com:mcp-server
   name: Macaroon Network MCP Server
   description: >-
     The network router MCP server — a live Streamable HTTP endpoint at https://api.macaroonnetwork.com/mcp
     (serverInfo macaroon-network 0.3.0, protocol 2025-06-18) answering initialize and tools/list anonymously
-    with four tools (macaroons_search, macaroons_metadata, macaroons_purchase, macaroons_execute), plus the
-    same router shipped as a stdio package (pip install macaroonnetwork-mcp, PyPI 0.4.0) listed in the official
-    MCP registry as com.macaroonnetwork/mcp-server. Paid tool calls return the real x402 challenge for the
-    caller's own wallet to sign; the server never holds a wallet.
+    with four tools (macaroons_search, macaroons_metadata, macaroons_purchase, macaroons_execute), plus
+    the same router shipped as a stdio package (pip install macaroonnetwork-mcp, PyPI 0.4.0) listed in
+    the official MCP registry as com.macaroonnetwork/mcp-server. Paid tool calls return the real x402
+    challenge for the caller's own wallet to sign; the server never holds a wallet.
   tags:
   - MCP
   - Agentic Commerce
@@ -126,11 +101,10 @@ apis:
   name: Macaroon Bible Evidence MCP Server
   description: >-
     A free, read-only Streamable HTTP MCP server at https://api.macaroonnetwork.com/mcp-faith-evidence-v1/mcp/
-    (serverInfo macaroon-bible-evidence 0.3.0) exposing eleven bounded tools over pinned Berean Standard Bible
-    and World English Bible corpora — exact verse lookup, passage context, BSB/WEB comparison, OpenBible
-    cross-references, literal search, topic evidence guides and discovery of the paid Christian services. No
-    wallet, purchase or execution tool is exposed. Listed in the official MCP registry as
-    com.macaroonnetwork/bible-evidence.
+    (serverInfo macaroon-bible-evidence 0.3.0) exposing eleven bounded tools over pinned Berean Standard
+    Bible and World English Bible corpora — exact verse lookup, passage context, BSB/WEB comparison, OpenBible
+    cross-references, literal search, topic evidence guides and discovery of the paid Christian services.
+    No wallet, purchase or execution tool is exposed. Listed in the official MCP registry as com.macaroonnetwork/bible-evidence.
   tags:
   - MCP
   - Bible
@@ -148,10 +122,10 @@ apis:
 - aid: macaroonnetwork-com:a2a-agent
   name: Macaroon Network A2A Agent
   description: >-
-    An Agent2Agent 0.3.0 endpoint at https://api.macaroonnetwork.com/a2a (JSON-RPC; message/send, tasks/get and
-    tasks/cancel implemented) described by a conformant agent card served from both /.well-known/agent-card.json
-    and the legacy /.well-known/agent.json on the API host. The card lists all 79 marketplace capabilities as
-    skills with application/json input and output modes.
+    An Agent2Agent 0.3.0 endpoint at https://api.macaroonnetwork.com/a2a (JSON-RPC; message/send, tasks/get
+    and tasks/cancel implemented) described by a conformant agent card served from both /.well-known/agent-card.json
+    and the legacy /.well-known/agent.json on the API host. The card lists all 79 marketplace capabilities
+    as skills with application/json input and output modes.
   tags:
   - A2A
   - Agents
@@ -168,12 +142,485 @@ apis:
   - type: AgentCard
     name: Agent card (provider-hosted)
     url: https://api.macaroonnetwork.com/.well-known/agent-card.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-a2a-api
+  name: Macaroon Network A2a API
+  description: The A2a API from Macaroon Network — 2 operation(s) for a2a.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - A2a
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-a2a-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-ai-for-science-api
+  name: Macaroon Network AI FOR SCIENCE API
+  description: The AI FOR SCIENCE API from Macaroon Network — 3 operation(s) for ai for science.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - AI FOR SCIENCE
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-ai-for-science-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-ai-model-data-api
+  name: Macaroon Network AI MODEL DATA API
+  description: The AI MODEL DATA API from Macaroon Network — 1 operation(s) for ai model data.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - AI MODEL DATA
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-ai-model-data-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-auth-md-api
+  name: Macaroon Network Auth.md API
+  description: The Auth.md API from Macaroon Network — 1 operation(s) for auth.md.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Auth.md
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-auth-md-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-compliance-risk-api
+  name: Macaroon Network COMPLIANCE & RISK API
+  description: The COMPLIANCE & RISK API from Macaroon Network — 12 operation(s) for compliance & risk.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - COMPLIANCE & RISK
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-compliance-risk-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-computational-research-api
+  name: Macaroon Network COMPUTATIONAL RESEARCH API
+  description: >-
+    The COMPUTATIONAL RESEARCH API from Macaroon Network — 1 operation(s) for computational research.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - COMPUTATIONAL RESEARCH
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-computational-research-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-data-evidence-api
+  name: Macaroon Network DATA & EVIDENCE API
+  description: The DATA & EVIDENCE API from Macaroon Network — 3 operation(s) for data & evidence.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - DATA & EVIDENCE
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-data-evidence-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-data-infrastructure-api
+  name: Macaroon Network DATA & INFRASTRUCTURE API
+  description: >-
+    The DATA & INFRASTRUCTURE API from Macaroon Network — 1 operation(s) for data & infrastructure.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - DATA & INFRASTRUCTURE
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-data-infrastructure-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-data-lookup-api
+  name: Macaroon Network DATA LOOKUP API
+  description: The DATA LOOKUP API from Macaroon Network — 23 operation(s) for data lookup.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - DATA LOOKUP
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-data-lookup-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-developer-data-api
+  name: Macaroon Network DEVELOPER DATA API
+  description: The DEVELOPER DATA API from Macaroon Network — 1 operation(s) for developer data.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - DEVELOPER DATA
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-developer-data-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-execute-api
+  name: Macaroon Network Execute API
+  description: The Execute API from Macaroon Network — 1 operation(s) for execute.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Execute
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-execute-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-faith-theology-api
+  name: Macaroon Network FAITH & THEOLOGY API
+  description: The FAITH & THEOLOGY API from Macaroon Network — 11 operation(s) for faith & theology.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - FAITH & THEOLOGY
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-faith-theology-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-health-api
+  name: Macaroon Network Health API
+  description: The Health API from Macaroon Network — 1 operation(s) for health.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Health
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-health-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-infrastructure-utility-api
+  name: Macaroon Network INFRASTRUCTURE & UTILITY API
+  description: >-
+    The INFRASTRUCTURE & UTILITY API from Macaroon Network — 1 operation(s) for infrastructure & utility.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - INFRASTRUCTURE & UTILITY
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-infrastructure-utility-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-internal-api
+  name: Macaroon Network Internal API
+  description: The Internal API from Macaroon Network — 2 operation(s) for internal.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Internal
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-internal-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-listings-api
+  name: Macaroon Network Listings API
+  description: The Listings API from Macaroon Network — 3 operation(s) for listings.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Listings
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-listings-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-llms-txt-api
+  name: Macaroon Network Llms.txt API
+  description: The Llms.txt API from Macaroon Network — 1 operation(s) for llms.txt.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Llms.txt
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-llms-txt-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-macaroon-network-agent-services-api
+  name: Macaroon Network Macaroon Network Agent Services API
+  description: >-
+    The Macaroon Network Agent Services API from Macaroon Network — 1 operation(s) for macaroon network
+    agent services.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Macaroon Network Agent Services
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-macaroon-network-agent-services-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-marketing-api
+  name: Macaroon Network Marketing API
+  description: The Marketing API from Macaroon Network — 1 operation(s) for marketing.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Marketing
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-marketing-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-product-development-api
+  name: Macaroon Network PRODUCT DEVELOPMENT API
+  description: >-
+    The PRODUCT DEVELOPMENT API from Macaroon Network — 1 operation(s) for product development.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - PRODUCT DEVELOPMENT
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-product-development-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-provider-api
+  name: Macaroon Network Provider API
+  description: The Provider API from Macaroon Network — 3 operation(s) for provider.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Provider
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-provider-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-public-api
+  name: Macaroon Network Public API
+  description: The Public API from Macaroon Network — 19 operation(s) for public.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Public
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-public-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-receipts-api
+  name: Macaroon Network Receipts API
+  description: The Receipts API from Macaroon Network — 1 operation(s) for receipts.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Receipts
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-receipts-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-research-analysis-api
+  name: Macaroon Network RESEARCH & ANALYSIS API
+  description: >-
+    The RESEARCH & ANALYSIS API from Macaroon Network — 1 operation(s) for research & analysis.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - RESEARCH & ANALYSIS
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-research-analysis-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-research-data-api
+  name: Macaroon Network RESEARCH DATA API
+  description: The RESEARCH DATA API from Macaroon Network — 9 operation(s) for research data.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - RESEARCH DATA
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-research-data-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-robots-txt-api
+  name: Macaroon Network Robots.txt API
+  description: The Robots.txt API from Macaroon Network — 1 operation(s) for robots.txt.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Robots.txt
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-robots-txt-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-router-api
+  name: Macaroon Network Router API
+  description: The Router API from Macaroon Network — 1 operation(s) for router.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - Router
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-router-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-simulation-cfd-api
+  name: Macaroon Network SIMULATION & CFD API
+  description: The SIMULATION & CFD API from Macaroon Network — 3 operation(s) for simulation & cfd.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - SIMULATION & CFD
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-simulation-cfd-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
+- aid: macaroonnetwork-com:macaroonnetwork-com-well-known-api
+  name: Macaroon Network .well Known API
+  description: The .well Known API from Macaroon Network — 8 operation(s) for .well known.
+  humanURL: https://macaroonnetwork.com/services
+  baseURL: https://api.macaroonnetwork.com
+  tags:
+  - .well Known
+  properties:
+  - type: OpenAPI
+    url: openapi/macaroonnetwork-com-well-known-api-openapi.yml
+  - type: APIReference
+    url: https://api.macaroonnetwork.com/docs
+  - type: Documentation
+    url: https://macaroonnetwork.com/listings
+  - type: AICatalog
+    url: https://api.macaroonnetwork.com/.well-known/ai-catalog.json
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: Overlay
+  url: overlays/macaroonnetwork-com-openapi-overlay.yaml
 - type: VulnerabilityDisclosure
   url: security/macaroonnetwork-com-vulnerability-disclosure.yml
 - type: DomainSecurity
@@ -259,3 +706,10 @@ x-enrichment:
   status: enriched
   artifacts_added: 37
   pass: local-v3
+x-a2a:
+  verified: true
+  probed: '2026-09-26'
+  url: "https://api.macaroonnetwork.com/.well-known/agent-card.json"
+  grade: "conformant"
+  protocol_version: "0.3.0"
+  control: 404
