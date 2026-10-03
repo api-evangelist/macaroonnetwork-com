@@ -1,7 +1,7 @@
 {
   "provider": "macaroonnetwork-com",
   "sources": [
-    "macaroonnetwork-com-openapi.json"
+    "_original/macaroonnetwork-com-openapi.json"
   ],
   "outputs": [
     "macaroonnetwork-com-well-known-api-openapi.yml",
@@ -34,12 +34,11 @@
     "macaroonnetwork-com-router-api-openapi.yml",
     "macaroonnetwork-com-simulation-cfd-api-openapi.yml"
   ],
-  "archived": [
-    "archived openapi/macaroonnetwork-com-openapi.json"
-  ],
+  "archived": [],
   "errors": [],
   "warnings": [],
   "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
     "macaroonnetwork-com-openapi.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
     "macaroonnetwork-com-openapi.json: tagged paths GET /health -> Health",
     "macaroonnetwork-com-openapi.json: tagged paths GET / -> Macaroon Network Agent Services",
@@ -119,7 +118,37 @@
     "macaroonnetwork-com-openapi.json: declared missing tag: Robots.txt",
     "macaroonnetwork-com-openapi.json: declared missing tag: Router",
     "macaroonnetwork-com-openapi.json: declared missing tag: SIMULATION & CFD",
-    "apis.yml register: written (+29 apis, 32 total)"
+    "apis.yml register: already-registered"
   ],
-  "skipped": []
+  "skipped": [
+    "macaroonnetwork-com-a2a-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-ai-for-science-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-ai-model-data-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-auth-md-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-compliance-risk-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-computational-research-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-data-evidence-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-data-infrastructure-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-data-lookup-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-developer-data-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-execute-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-faith-theology-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-health-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-infrastructure-utility-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-internal-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-listings-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-llms-txt-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-macaroon-network-agent-services-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-marketing-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-product-development-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-provider-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-public-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-receipts-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-research-analysis-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-research-data-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-robots-txt-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-router-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-simulation-cfd-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "macaroonnetwork-com-well-known-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
 }

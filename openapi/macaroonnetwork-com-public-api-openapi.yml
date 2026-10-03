@@ -696,71 +696,6 @@ components:
       - action
       - service_id
       title: GPTFaithServiceActionRequest
-    GPTFaithScriptureActionRequest:
-      properties:
-        source_id:
-          type: string
-          enum:
-          - bsb
-          - web
-          title: Source Id
-        book_id:
-          type: string
-          maxLength: 24
-          minLength: 2
-          title: Book Id
-        chapter:
-          type: integer
-          maximum: 150.0
-          minimum: 1.0
-          title: Chapter
-        verse_start:
-          type: integer
-          maximum: 176.0
-          minimum: 1.0
-          title: Verse Start
-        verse_end:
-          type: integer
-          maximum: 176.0
-          minimum: 1.0
-          title: Verse End
-        action:
-          type: string
-          const: scripture_lookup
-          title: Action
-      additionalProperties: false
-      type: object
-      required:
-      - source_id
-      - book_id
-      - chapter
-      - verse_start
-      - verse_end
-      - action
-      title: GPTFaithScriptureActionRequest
-    GPTFaithSearchActionRequest:
-      properties:
-        action:
-          type: string
-          const: search_services
-          title: Action
-        query:
-          type: string
-          maxLength: 200
-          minLength: 1
-          title: Query
-        limit:
-          type: integer
-          maximum: 20.0
-          minimum: 1.0
-          title: Limit
-          default: 10
-      additionalProperties: false
-      type: object
-      required:
-      - action
-      - query
-      title: GPTFaithSearchActionRequest
     ValidationError:
       properties:
         loc:
@@ -787,27 +722,6 @@ components:
       - msg
       - type
       title: ValidationError
-    HTTPValidationError:
-      properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          type: array
-          title: Detail
-      type: object
-      title: HTTPValidationError
-    GPTFaithServiceRequest:
-      properties:
-        service_id:
-          type: string
-          maxLength: 120
-          minLength: 1
-          title: Service Id
-      additionalProperties: false
-      type: object
-      required:
-      - service_id
-      title: GPTFaithServiceRequest
     PublicServicesResponse:
       properties:
         services:
@@ -819,6 +733,17 @@ components:
       required:
       - services
       title: PublicServicesResponse
+    GPTFaithListActionRequest:
+      properties:
+        action:
+          type: string
+          const: list_services
+          title: Action
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      title: GPTFaithListActionRequest
     PublicServiceSummary:
       properties:
         service_id:
@@ -923,19 +848,6 @@ components:
       - output_schema
       - payment
       title: PublicServiceSummary
-    PublicMarketplaceStatsResponse:
-      properties:
-        independent_sales_24h:
-          type: integer
-          title: Independent Sales 24H
-        independent_sales_24h_revenue_usdc_atomic:
-          type: integer
-          title: Independent Sales 24H Revenue Usdc Atomic
-      type: object
-      required:
-      - independent_sales_24h
-      - independent_sales_24h_revenue_usdc_atomic
-      title: PublicMarketplaceStatsResponse
     GPTFaithSearchRequest:
       properties:
         query:
@@ -954,6 +866,51 @@ components:
       required:
       - query
       title: GPTFaithSearchRequest
+    GPTFaithSearchActionRequest:
+      properties:
+        action:
+          type: string
+          const: search_services
+          title: Action
+        query:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Query
+        limit:
+          type: integer
+          maximum: 20.0
+          minimum: 1.0
+          title: Limit
+          default: 10
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      - query
+      title: GPTFaithSearchActionRequest
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    PublicMarketplaceStatsResponse:
+      properties:
+        independent_sales_24h:
+          type: integer
+          title: Independent Sales 24H
+        independent_sales_24h_revenue_usdc_atomic:
+          type: integer
+          title: Independent Sales 24H Revenue Usdc Atomic
+      type: object
+      required:
+      - independent_sales_24h
+      - independent_sales_24h_revenue_usdc_atomic
+      title: PublicMarketplaceStatsResponse
     GPTScriptureLookupRequest:
       properties:
         source_id:
@@ -992,14 +949,57 @@ components:
       - verse_end
       title: GPTScriptureLookupRequest
       description: Small, literal corpus lookup contract for the public faith GPT.
-    GPTFaithListActionRequest:
+    GPTFaithScriptureActionRequest:
       properties:
+        source_id:
+          type: string
+          enum:
+          - bsb
+          - web
+          title: Source Id
+        book_id:
+          type: string
+          maxLength: 24
+          minLength: 2
+          title: Book Id
+        chapter:
+          type: integer
+          maximum: 150.0
+          minimum: 1.0
+          title: Chapter
+        verse_start:
+          type: integer
+          maximum: 176.0
+          minimum: 1.0
+          title: Verse Start
+        verse_end:
+          type: integer
+          maximum: 176.0
+          minimum: 1.0
+          title: Verse End
         action:
           type: string
-          const: list_services
+          const: scripture_lookup
           title: Action
       additionalProperties: false
       type: object
       required:
+      - source_id
+      - book_id
+      - chapter
+      - verse_start
+      - verse_end
       - action
-      title: GPTFaithListActionRequest
+      title: GPTFaithScriptureActionRequest
+    GPTFaithServiceRequest:
+      properties:
+        service_id:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: Service Id
+      additionalProperties: false
+      type: object
+      required:
+      - service_id
+      title: GPTFaithServiceRequest

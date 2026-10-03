@@ -64,22 +64,23 @@ paths:
       - Internal
 components:
   schemas:
-    UniversalSearchRequest:
+    CommercialPageEvent:
       properties:
-        query:
+        service_id:
           type: string
-          maxLength: 200
+          maxLength: 120
           minLength: 1
-          title: Query
-        filters:
+          title: Service Id
+        source:
           anyOf:
-          - $ref: '#/components/schemas/UniversalSearchFilters'
+          - type: string
+            maxLength: 40
           - type: 'null'
-      additionalProperties: false
+          title: Source
       type: object
       required:
-      - query
-      title: UniversalSearchRequest
+      - service_id
+      title: CommercialPageEvent
     ValidationError:
       properties:
         loc:
@@ -106,6 +107,31 @@ components:
       - msg
       - type
       title: ValidationError
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    UniversalSearchRequest:
+      properties:
+        query:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Query
+        filters:
+          anyOf:
+          - $ref: '#/components/schemas/UniversalSearchFilters'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      required:
+      - query
+      title: UniversalSearchRequest
     UniversalSearchFilters:
       properties:
         category:
@@ -132,29 +158,3 @@ components:
       additionalProperties: false
       type: object
       title: UniversalSearchFilters
-    HTTPValidationError:
-      properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          type: array
-          title: Detail
-      type: object
-      title: HTTPValidationError
-    CommercialPageEvent:
-      properties:
-        service_id:
-          type: string
-          maxLength: 120
-          minLength: 1
-          title: Service Id
-        source:
-          anyOf:
-          - type: string
-            maxLength: 40
-          - type: 'null'
-          title: Source
-      type: object
-      required:
-      - service_id
-      title: CommercialPageEvent
