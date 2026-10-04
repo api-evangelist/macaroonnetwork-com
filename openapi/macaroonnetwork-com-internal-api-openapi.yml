@@ -64,6 +64,32 @@ paths:
       - Internal
 components:
   schemas:
+    UniversalSearchFilters:
+      properties:
+        category:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+          title: Category
+        max_price_usdc:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Max Price Usdc
+        limit:
+          type: integer
+          maximum: 25.0
+          minimum: 1.0
+          title: Limit
+          default: 10
+        include_evidence_summary:
+          type: boolean
+          title: Include Evidence Summary
+          default: false
+      additionalProperties: false
+      type: object
+      title: UniversalSearchFilters
     CommercialPageEvent:
       properties:
         service_id:
@@ -107,15 +133,6 @@ components:
       - msg
       - type
       title: ValidationError
-    HTTPValidationError:
-      properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          type: array
-          title: Detail
-      type: object
-      title: HTTPValidationError
     UniversalSearchRequest:
       properties:
         query:
@@ -132,29 +149,12 @@ components:
       required:
       - query
       title: UniversalSearchRequest
-    UniversalSearchFilters:
+    HTTPValidationError:
       properties:
-        category:
-          anyOf:
-          - type: string
-            maxLength: 80
-          - type: 'null'
-          title: Category
-        max_price_usdc:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Max Price Usdc
-        limit:
-          type: integer
-          maximum: 25.0
-          minimum: 1.0
-          title: Limit
-          default: 10
-        include_evidence_summary:
-          type: boolean
-          title: Include Evidence Summary
-          default: false
-      additionalProperties: false
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
       type: object
-      title: UniversalSearchFilters
+      title: HTTPValidationError

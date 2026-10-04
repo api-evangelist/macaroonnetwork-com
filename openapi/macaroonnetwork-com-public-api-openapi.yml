@@ -525,6 +525,29 @@ paths:
       - Public
 components:
   schemas:
+    GPTFaithSearchActionRequest:
+      properties:
+        action:
+          type: string
+          const: search_services
+          title: Action
+        query:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Query
+        limit:
+          type: integer
+          maximum: 20.0
+          minimum: 1.0
+          title: Limit
+          default: 10
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      - query
+      title: GPTFaithSearchActionRequest
     PublicServiceDetail:
       properties:
         service_id:
@@ -676,15 +699,8 @@ components:
       - trust_evidence
       - limitations
       title: PublicServiceDetail
-    GPTFaithServiceActionRequest:
+    GPTFaithServiceRequest:
       properties:
-        action:
-          type: string
-          enum:
-          - service_detail
-          - service_evidence
-          - service_page
-          title: Action
         service_id:
           type: string
           maxLength: 120
@@ -693,9 +709,8 @@ components:
       additionalProperties: false
       type: object
       required:
-      - action
       - service_id
-      title: GPTFaithServiceActionRequest
+      title: GPTFaithServiceRequest
     ValidationError:
       properties:
         loc:
@@ -722,17 +737,24 @@ components:
       - msg
       - type
       title: ValidationError
-    PublicServicesResponse:
+    GPTFaithSearchRequest:
       properties:
-        services:
-          items:
-            $ref: '#/components/schemas/PublicServiceSummary'
-          type: array
-          title: Services
+        query:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Query
+        limit:
+          type: integer
+          maximum: 20.0
+          minimum: 1.0
+          title: Limit
+          default: 10
+      additionalProperties: false
       type: object
       required:
-      - services
-      title: PublicServicesResponse
+      - query
+      title: GPTFaithSearchRequest
     GPTFaithListActionRequest:
       properties:
         action:
@@ -744,6 +766,130 @@ components:
       required:
       - action
       title: GPTFaithListActionRequest
+    PublicServicesResponse:
+      properties:
+        services:
+          items:
+            $ref: '#/components/schemas/PublicServiceSummary'
+          type: array
+          title: Services
+      type: object
+      required:
+      - services
+      title: PublicServicesResponse
+    PublicMarketplaceStatsResponse:
+      properties:
+        independent_sales_24h:
+          type: integer
+          title: Independent Sales 24H
+        independent_sales_24h_revenue_usdc_atomic:
+          type: integer
+          title: Independent Sales 24H Revenue Usdc Atomic
+      type: object
+      required:
+      - independent_sales_24h
+      - independent_sales_24h_revenue_usdc_atomic
+      title: PublicMarketplaceStatsResponse
+    GPTFaithServiceActionRequest:
+      properties:
+        action:
+          type: string
+          enum:
+          - service_detail
+          - service_evidence
+          - service_page
+          title: Action
+        service_id:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: Service Id
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      - service_id
+      title: GPTFaithServiceActionRequest
+    GPTScriptureLookupRequest:
+      properties:
+        source_id:
+          type: string
+          enum:
+          - bsb
+          - web
+          title: Source Id
+        book_id:
+          type: string
+          maxLength: 24
+          minLength: 2
+          title: Book Id
+        chapter:
+          type: integer
+          maximum: 150.0
+          minimum: 1.0
+          title: Chapter
+        verse_start:
+          type: integer
+          maximum: 176.0
+          minimum: 1.0
+          title: Verse Start
+        verse_end:
+          type: integer
+          maximum: 176.0
+          minimum: 1.0
+          title: Verse End
+      additionalProperties: false
+      type: object
+      required:
+      - source_id
+      - book_id
+      - chapter
+      - verse_start
+      - verse_end
+      title: GPTScriptureLookupRequest
+      description: Small, literal corpus lookup contract for the public faith GPT.
+    GPTFaithScriptureActionRequest:
+      properties:
+        source_id:
+          type: string
+          enum:
+          - bsb
+          - web
+          title: Source Id
+        book_id:
+          type: string
+          maxLength: 24
+          minLength: 2
+          title: Book Id
+        chapter:
+          type: integer
+          maximum: 150.0
+          minimum: 1.0
+          title: Chapter
+        verse_start:
+          type: integer
+          maximum: 176.0
+          minimum: 1.0
+          title: Verse Start
+        verse_end:
+          type: integer
+          maximum: 176.0
+          minimum: 1.0
+          title: Verse End
+        action:
+          type: string
+          const: scripture_lookup
+          title: Action
+      additionalProperties: false
+      type: object
+      required:
+      - source_id
+      - book_id
+      - chapter
+      - verse_start
+      - verse_end
+      - action
+      title: GPTFaithScriptureActionRequest
     PublicServiceSummary:
       properties:
         service_id:
@@ -848,47 +994,6 @@ components:
       - output_schema
       - payment
       title: PublicServiceSummary
-    GPTFaithSearchRequest:
-      properties:
-        query:
-          type: string
-          maxLength: 200
-          minLength: 1
-          title: Query
-        limit:
-          type: integer
-          maximum: 20.0
-          minimum: 1.0
-          title: Limit
-          default: 10
-      additionalProperties: false
-      type: object
-      required:
-      - query
-      title: GPTFaithSearchRequest
-    GPTFaithSearchActionRequest:
-      properties:
-        action:
-          type: string
-          const: search_services
-          title: Action
-        query:
-          type: string
-          maxLength: 200
-          minLength: 1
-          title: Query
-        limit:
-          type: integer
-          maximum: 20.0
-          minimum: 1.0
-          title: Limit
-          default: 10
-      additionalProperties: false
-      type: object
-      required:
-      - action
-      - query
-      title: GPTFaithSearchActionRequest
     HTTPValidationError:
       properties:
         detail:
@@ -898,108 +1003,3 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
-    PublicMarketplaceStatsResponse:
-      properties:
-        independent_sales_24h:
-          type: integer
-          title: Independent Sales 24H
-        independent_sales_24h_revenue_usdc_atomic:
-          type: integer
-          title: Independent Sales 24H Revenue Usdc Atomic
-      type: object
-      required:
-      - independent_sales_24h
-      - independent_sales_24h_revenue_usdc_atomic
-      title: PublicMarketplaceStatsResponse
-    GPTScriptureLookupRequest:
-      properties:
-        source_id:
-          type: string
-          enum:
-          - bsb
-          - web
-          title: Source Id
-        book_id:
-          type: string
-          maxLength: 24
-          minLength: 2
-          title: Book Id
-        chapter:
-          type: integer
-          maximum: 150.0
-          minimum: 1.0
-          title: Chapter
-        verse_start:
-          type: integer
-          maximum: 176.0
-          minimum: 1.0
-          title: Verse Start
-        verse_end:
-          type: integer
-          maximum: 176.0
-          minimum: 1.0
-          title: Verse End
-      additionalProperties: false
-      type: object
-      required:
-      - source_id
-      - book_id
-      - chapter
-      - verse_start
-      - verse_end
-      title: GPTScriptureLookupRequest
-      description: Small, literal corpus lookup contract for the public faith GPT.
-    GPTFaithScriptureActionRequest:
-      properties:
-        source_id:
-          type: string
-          enum:
-          - bsb
-          - web
-          title: Source Id
-        book_id:
-          type: string
-          maxLength: 24
-          minLength: 2
-          title: Book Id
-        chapter:
-          type: integer
-          maximum: 150.0
-          minimum: 1.0
-          title: Chapter
-        verse_start:
-          type: integer
-          maximum: 176.0
-          minimum: 1.0
-          title: Verse Start
-        verse_end:
-          type: integer
-          maximum: 176.0
-          minimum: 1.0
-          title: Verse End
-        action:
-          type: string
-          const: scripture_lookup
-          title: Action
-      additionalProperties: false
-      type: object
-      required:
-      - source_id
-      - book_id
-      - chapter
-      - verse_start
-      - verse_end
-      - action
-      title: GPTFaithScriptureActionRequest
-    GPTFaithServiceRequest:
-      properties:
-        service_id:
-          type: string
-          maxLength: 120
-          minLength: 1
-          title: Service Id
-      additionalProperties: false
-      type: object
-      required:
-      - service_id
-      title: GPTFaithServiceRequest
