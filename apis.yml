@@ -148,6 +148,8 @@ apis:
   humanURL: https://macaroonnetwork.com/services
   baseURL: https://api.macaroonnetwork.com
   tags:
+  - A2A
+  tags_raw:
   - A2a
   properties:
   - type: OpenAPI
@@ -164,6 +166,8 @@ apis:
   humanURL: https://macaroonnetwork.com/services
   baseURL: https://api.macaroonnetwork.com
   tags:
+  - AI for Science
+  tags_raw:
   - AI FOR SCIENCE
   properties:
   - type: OpenAPI
@@ -407,6 +411,8 @@ apis:
   humanURL: https://macaroonnetwork.com/services
   baseURL: https://api.macaroonnetwork.com
   tags:
+  - llms-txt
+  tags_raw:
   - Llms.txt
   properties:
   - type: OpenAPI
@@ -458,6 +464,8 @@ apis:
   humanURL: https://macaroonnetwork.com/services
   baseURL: https://api.macaroonnetwork.com
   tags:
+  - Product Development
+  tags_raw:
   - PRODUCT DEVELOPMENT
   properties:
   - type: OpenAPI
@@ -474,6 +482,8 @@ apis:
   humanURL: https://macaroonnetwork.com/services
   baseURL: https://api.macaroonnetwork.com
   tags:
+  - Providers
+  tags_raw:
   - Provider
   properties:
   - type: OpenAPI
@@ -539,6 +549,8 @@ apis:
   humanURL: https://macaroonnetwork.com/services
   baseURL: https://api.macaroonnetwork.com
   tags:
+  - Research Data
+  tags_raw:
   - RESEARCH DATA
   properties:
   - type: OpenAPI
