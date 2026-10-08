@@ -75,3 +75,40 @@ human_products_not_api_plans:
   note: 'Home page: "No goods, equity, charitable tax relief or preferential service are provided."'
 planned_not_sold:
   note: Four ai-catalog entries carry subscriptions[] with status planned (validated-pinn-feed, campaigns-corpus-feed, gpu-llm-pricing-feed, open-science-metadata-feed; target_price_usd_cents 5000/month). Recorded as the provider's own roadmap flag, not as available plans.
+x-canonical:
+  generated: '2026-10-08'
+  vocabulary: all/0-working/economics/plans-canonical.yml
+  models:
+  - free
+  - hybrid
+  - metered
+  units: []
+  plans:
+  - name: Agent-payable APIs (x402, USDC on Base)
+    access: other
+    model: metered
+    model_how: derived
+    units: []
+    periods:
+    - other
+  - name: Evidence MCP (free)
+    access: other
+    model: free
+    model_how: derived
+    units: []
+    periods:
+    - other
+  - name: Faith Evidence Pro
+    access: other
+    model: hybrid
+    model_how: derived
+    units: []
+    periods:
+    - month
+  - name: Logistics Compliance Pro
+    access: other
+    model: hybrid
+    model_how: derived
+    units: []
+    periods:
+    - month
