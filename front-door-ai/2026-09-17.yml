@@ -1,0 +1,33 @@
+# Front Door AI Index — macaroonnetwork-com — 2026-09-17
+# AI vocabulary counted on the provider's root page. Generated; do not edit.
+# `score` is null unless ownership is `own` — see front_door_ai.py.
+front_door_ai:
+  slug: macaroonnetwork-com
+  lexicon_version: '1.0'
+  probed_at: '2026-09-25'
+  host: macaroonnetwork.com
+  final_host: macaroonnetwork.com
+  ownership: own
+  owner: macaroonnetwork-com
+  shares_host_with: null
+  inherited_from: null
+  alias_of: null
+  verdict: scored
+  score: 11
+  band: 5
+  band_label: prominent
+  host_score: 11
+  density: 4.16
+  words: 2642
+  tiers:
+    agentic: 4
+    core: 7
+    model: 0
+  ambiguous: 16
+  top_terms:
+    agent: 15
+    LLMs: 4
+    AI: 3
+    AI agent: 2
+    autonomous agent: 2
+    intelligence: 1
