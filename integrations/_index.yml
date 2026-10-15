@@ -19,6 +19,6 @@
     registered_name: com.macaroonnetwork/bible-evidence
     register_id: com.macaroonnetwork/bible-evidence
     detected_by: sweep-agent-tools.py
-    detected: '2026-10-14'
+    detected: '2026-10-15'
   status: not-a-workflow
   arazzo: null
