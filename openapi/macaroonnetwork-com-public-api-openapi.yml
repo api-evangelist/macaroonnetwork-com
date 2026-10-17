@@ -525,6 +525,130 @@ paths:
       - Public
 components:
   schemas:
+    PublicServiceSummary:
+      properties:
+        service_id:
+          type: string
+          title: Service Id
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+        customer_outcome:
+          type: string
+          title: Customer Outcome
+        category:
+          type: string
+          title: Category
+        category_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category Id
+        mcp_server_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Mcp Server Id
+        source_ids:
+          items:
+            type: string
+          type: array
+          title: Source Ids
+        status:
+          type: string
+          title: Status
+        price:
+          additionalProperties: true
+          type: object
+          title: Price
+        trust_status:
+          type: string
+          title: Trust Status
+        service_url:
+          type: string
+          title: Service Url
+        external_checkout:
+          type: boolean
+          title: External Checkout
+          default: true
+        detail_url:
+          type: string
+          title: Detail Url
+        execute_url:
+          type: string
+          title: Execute Url
+        method:
+          type: string
+          title: Method
+        content_type:
+          type: string
+          title: Content Type
+        input_schema:
+          additionalProperties: true
+          type: object
+          title: Input Schema
+        output_schema:
+          additionalProperties: true
+          type: object
+          title: Output Schema
+        example_request:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Example Request
+        payment:
+          additionalProperties: true
+          type: object
+          title: Payment
+        payment_offers:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Payment Offers
+      type: object
+      required:
+      - service_id
+      - name
+      - description
+      - customer_outcome
+      - category
+      - status
+      - price
+      - trust_status
+      - service_url
+      - detail_url
+      - execute_url
+      - method
+      - content_type
+      - input_schema
+      - output_schema
+      - payment
+      title: PublicServiceSummary
+    GPTFaithServiceActionRequest:
+      properties:
+        action:
+          type: string
+          enum:
+          - service_detail
+          - service_evidence
+          - service_page
+          title: Action
+        service_id:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: Service Id
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      - service_id
+      title: GPTFaithServiceActionRequest
     GPTFaithSearchActionRequest:
       properties:
         action:
@@ -548,6 +672,17 @@ components:
       - action
       - query
       title: GPTFaithSearchActionRequest
+    GPTFaithListActionRequest:
+      properties:
+        action:
+          type: string
+          const: list_services
+          title: Action
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      title: GPTFaithListActionRequest
     PublicServiceDetail:
       properties:
         service_id:
@@ -699,44 +834,6 @@ components:
       - trust_evidence
       - limitations
       title: PublicServiceDetail
-    GPTFaithServiceRequest:
-      properties:
-        service_id:
-          type: string
-          maxLength: 120
-          minLength: 1
-          title: Service Id
-      additionalProperties: false
-      type: object
-      required:
-      - service_id
-      title: GPTFaithServiceRequest
-    ValidationError:
-      properties:
-        loc:
-          items:
-            anyOf:
-            - type: string
-            - type: integer
-          type: array
-          title: Location
-        msg:
-          type: string
-          title: Message
-        type:
-          type: string
-          title: Error Type
-        input:
-          title: Input
-        ctx:
-          type: object
-          title: Context
-      type: object
-      required:
-      - loc
-      - msg
-      - type
-      title: ValidationError
     GPTFaithSearchRequest:
       properties:
         query:
@@ -755,61 +852,6 @@ components:
       required:
       - query
       title: GPTFaithSearchRequest
-    GPTFaithListActionRequest:
-      properties:
-        action:
-          type: string
-          const: list_services
-          title: Action
-      additionalProperties: false
-      type: object
-      required:
-      - action
-      title: GPTFaithListActionRequest
-    PublicServicesResponse:
-      properties:
-        services:
-          items:
-            $ref: '#/components/schemas/PublicServiceSummary'
-          type: array
-          title: Services
-      type: object
-      required:
-      - services
-      title: PublicServicesResponse
-    PublicMarketplaceStatsResponse:
-      properties:
-        independent_sales_24h:
-          type: integer
-          title: Independent Sales 24H
-        independent_sales_24h_revenue_usdc_atomic:
-          type: integer
-          title: Independent Sales 24H Revenue Usdc Atomic
-      type: object
-      required:
-      - independent_sales_24h
-      - independent_sales_24h_revenue_usdc_atomic
-      title: PublicMarketplaceStatsResponse
-    GPTFaithServiceActionRequest:
-      properties:
-        action:
-          type: string
-          enum:
-          - service_detail
-          - service_evidence
-          - service_page
-          title: Action
-        service_id:
-          type: string
-          maxLength: 120
-          minLength: 1
-          title: Service Id
-      additionalProperties: false
-      type: object
-      required:
-      - action
-      - service_id
-      title: GPTFaithServiceActionRequest
     GPTScriptureLookupRequest:
       properties:
         source_id:
@@ -848,6 +890,66 @@ components:
       - verse_end
       title: GPTScriptureLookupRequest
       description: Small, literal corpus lookup contract for the public faith GPT.
+    PublicMarketplaceStatsResponse:
+      properties:
+        independent_sales_24h:
+          type: integer
+          title: Independent Sales 24H
+        independent_sales_24h_revenue_usdc_atomic:
+          type: integer
+          title: Independent Sales 24H Revenue Usdc Atomic
+      type: object
+      required:
+      - independent_sales_24h
+      - independent_sales_24h_revenue_usdc_atomic
+      title: PublicMarketplaceStatsResponse
+    GPTFaithServiceRequest:
+      properties:
+        service_id:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: Service Id
+      additionalProperties: false
+      type: object
+      required:
+      - service_id
+      title: GPTFaithServiceRequest
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
     GPTFaithScriptureActionRequest:
       properties:
         source_id:
@@ -890,116 +992,14 @@ components:
       - verse_end
       - action
       title: GPTFaithScriptureActionRequest
-    PublicServiceSummary:
+    PublicServicesResponse:
       properties:
-        service_id:
-          type: string
-          title: Service Id
-        name:
-          type: string
-          title: Name
-        description:
-          type: string
-          title: Description
-        customer_outcome:
-          type: string
-          title: Customer Outcome
-        category:
-          type: string
-          title: Category
-        category_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Category Id
-        mcp_server_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Mcp Server Id
-        source_ids:
+        services:
           items:
-            type: string
+            $ref: '#/components/schemas/PublicServiceSummary'
           type: array
-          title: Source Ids
-        status:
-          type: string
-          title: Status
-        price:
-          additionalProperties: true
-          type: object
-          title: Price
-        trust_status:
-          type: string
-          title: Trust Status
-        service_url:
-          type: string
-          title: Service Url
-        external_checkout:
-          type: boolean
-          title: External Checkout
-          default: true
-        detail_url:
-          type: string
-          title: Detail Url
-        execute_url:
-          type: string
-          title: Execute Url
-        method:
-          type: string
-          title: Method
-        content_type:
-          type: string
-          title: Content Type
-        input_schema:
-          additionalProperties: true
-          type: object
-          title: Input Schema
-        output_schema:
-          additionalProperties: true
-          type: object
-          title: Output Schema
-        example_request:
-          anyOf:
-          - additionalProperties: true
-            type: object
-          - type: 'null'
-          title: Example Request
-        payment:
-          additionalProperties: true
-          type: object
-          title: Payment
-        payment_offers:
-          items:
-            additionalProperties: true
-            type: object
-          type: array
-          title: Payment Offers
+          title: Services
       type: object
       required:
-      - service_id
-      - name
-      - description
-      - customer_outcome
-      - category
-      - status
-      - price
-      - trust_status
-      - service_url
-      - detail_url
-      - execute_url
-      - method
-      - content_type
-      - input_schema
-      - output_schema
-      - payment
-      title: PublicServiceSummary
-    HTTPValidationError:
-      properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          type: array
-          title: Detail
-      type: object
-      title: HTTPValidationError
+      - services
+      title: PublicServicesResponse

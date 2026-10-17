@@ -64,6 +64,23 @@ paths:
       - Internal
 components:
   schemas:
+    CommercialPageEvent:
+      properties:
+        service_id:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: Service Id
+        source:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Source
+      type: object
+      required:
+      - service_id
+      title: CommercialPageEvent
     UniversalSearchFilters:
       properties:
         category:
@@ -90,23 +107,22 @@ components:
       additionalProperties: false
       type: object
       title: UniversalSearchFilters
-    CommercialPageEvent:
+    UniversalSearchRequest:
       properties:
-        service_id:
+        query:
           type: string
-          maxLength: 120
+          maxLength: 200
           minLength: 1
-          title: Service Id
-        source:
+          title: Query
+        filters:
           anyOf:
-          - type: string
-            maxLength: 40
+          - $ref: '#/components/schemas/UniversalSearchFilters'
           - type: 'null'
-          title: Source
+      additionalProperties: false
       type: object
       required:
-      - service_id
-      title: CommercialPageEvent
+      - query
+      title: UniversalSearchRequest
     ValidationError:
       properties:
         loc:
@@ -133,22 +149,6 @@ components:
       - msg
       - type
       title: ValidationError
-    UniversalSearchRequest:
-      properties:
-        query:
-          type: string
-          maxLength: 200
-          minLength: 1
-          title: Query
-        filters:
-          anyOf:
-          - $ref: '#/components/schemas/UniversalSearchFilters'
-          - type: 'null'
-      additionalProperties: false
-      type: object
-      required:
-      - query
-      title: UniversalSearchRequest
     HTTPValidationError:
       properties:
         detail:
