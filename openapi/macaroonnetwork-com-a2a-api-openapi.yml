@@ -46,3 +46,9 @@ paths:
                 title: Response A2A Health A2A Health Get
       tags:
       - A2a
+x-provenance:
+  method: harvested
+  publisher: Macaroon Network
+  source: https://api.macaroonnetwork.com/openapi.json
+  note: split by refine-openapis from the provider's own published document, verified by fetch (openapi/_original/*.fetch.json);
+    stamped by stamp-openapi-provenance.py (roadmap#793)
